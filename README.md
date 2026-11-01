@@ -8,6 +8,10 @@
 חלצו את ה־ZIP והפעילו את `wordcraft.exe`. בחרו File → Options → Interface language → עברית.
 אין צורך בכלי בנייה במחשב המשתמש. התוכנה אינה חתומה. שמרו עותקים של מסמכים חשובים ובדקו תחילה מסמך ניסיון.
 
+## ממשק אפור
+
+בחרו קובץ → אפשרויות → ערכת נושא → בהיר (Light). בגרסה זו האפשרות הבהירה מציגה סרגלים אפורים ורקע אפור כהה סביב הדף. אם הדף עצמו כהה, כבו בנפרד את האפשרות דף כהה. צבעי המסמך וההדפסה אינם משתנים.
+
 ## בנייה חדשה
 
 ב־Actions בחרו `Build WordCraft Hebrew for Windows` ואז `Run workflow`.
@@ -21,4 +25,4 @@
 - Hebrew integration adapted from [PR 1303](https://github.com/storytold/wordcraft/pull/1303), plus `patches/pointer-fix.patch`.
 - Upstream MIT / Apache-2.0 license texts included; source modifications recorded in patches.
 
-Independent build configuration, not an official WordCraft release. No personal documents or user settings included. Gray interface theme not yet added.
+Independent build configuration, not an official WordCraft release. No personal documents or user settings included. Gray workspace replaces the Light interface palette; dark mode remains available.

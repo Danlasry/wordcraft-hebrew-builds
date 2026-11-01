@@ -21,7 +21,7 @@ function Checkout-Pinned {
 }
 Checkout-Pinned $Source 'https://github.com/storytold/wordcraft.git' $SourceRev
 Checkout-Pinned $Catalog 'https://github.com/storytold/craft-i18n.git' $CatalogRev
-foreach ($Name in @('hebrew.patch', 'pointer-fix.patch')) {
+foreach ($Name in @('hebrew.patch', 'pointer-fix.patch', 'gray-theme.patch')) {
     $Patch = Join-Path $Root "patches/$Name"
     # Git on Windows may check out patch files with CRLF; unified diffs require LF.
     $PatchText = [IO.File]::ReadAllText($Patch).Replace("`r`n", "`n")
@@ -33,7 +33,7 @@ $env:CRAFT_I18N_DIR = $Catalog
 $env:CRAFT_I18N_REQUIRED = '1'
 Push-Location $Source
 try {
-    foreach ($Filter in @('hebrew', 'ibeam::tests', 'mirror::tests')) {
+    foreach ($Filter in @('hebrew', 'ibeam::tests', 'mirror::tests', 'theme::tests', 'interface_theme', 'dark_page_leaves')) {
         Run-Native cargo @('+1.95.0', 'test', '--locked', '-p', 'wordcraft-ui-egui', '--lib', $Filter)
     }
     Run-Native cargo @('+1.95.0', 'build', '--locked', '--release', '-p', 'wordcraft', '--target', 'x86_64-pc-windows-msvc')

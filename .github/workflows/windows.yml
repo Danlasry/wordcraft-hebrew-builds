@@ -38,3 +38,30 @@ jobs:
           path: dist/
           if-no-files-found: error
           retention-days: 30
+      - name: Render gray interface preview
+        continue-on-error: true
+        shell: pwsh
+        run: |
+          $env:CRAFT_I18N_DIR = Join-Path $PWD 'catalog'
+          $env:CRAFT_I18N_REQUIRED = '1'
+          $env:WGPU_BACKEND = 'dx12'
+          $preview = Join-Path $PWD 'gray-preview.png'
+          $script = Join-Path $PWD 'preview.jsonl'
+          @(
+            '{"empty":true}'
+            '{"method":"engine.execute","params":{"command":"ui.language","params":{"value":"he"}}}'
+            '{"method":"engine.execute","params":{"command":"ui.theme","params":{"value":"light"}}}'
+            '{"method":"engine.execute","params":{"command":"text.insert","params":{"text":"סביבת כתיבה אפורה\nדף לבן ורקע אפור לעבודה נוחה."}}}'
+            (@{shot=$preview} | ConvertTo-Json -Compress)
+          ) | Set-Content $script -Encoding utf8NoBOM
+          Set-Location source
+          cargo +1.95.0 run --locked -p wordcraft-ui-egui --example ui_shot -- $script
+          if ($LASTEXITCODE -ne 0) { throw 'Preview rendering failed' }
+      - name: Upload preview
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: Gray-interface-preview
+          path: gray-preview.png
+          if-no-files-found: warn
+          retention-days: 30

@@ -1,0 +1,67 @@
+diff --git a/crates/ui-egui/src/theme.rs b/crates/ui-egui/src/theme.rs
+index bc768b47..202bf065 100644
+--- a/crates/ui-egui/src/theme.rs
++++ b/crates/ui-egui/src/theme.rs
+@@ -301,34 +301,35 @@ pub struct Tokens {
+ }
+ 
+ impl Tokens {
++    /// Neutral gray workspace for the custom Hebrew build; paper is independent.
+     pub fn light() -> Self {
+         Tokens {
+             dark: false,
+-            title_bar: Color32::from_rgb(0xF0, 0xF0, 0xF0),
+-            ribbon: Color32::from_rgb(0xF9, 0xF9, 0xF9),
+-            tab_strip: Color32::from_rgb(0xF0, 0xF0, 0xF0),
+-            canvas: Color32::from_rgb(0xE6, 0xE6, 0xE6),
+-            panel: Color32::from_rgb(0xFA, 0xFA, 0xFA),
+-            border: Color32::from_rgb(0xE1, 0xE1, 0xE1),
+-            border_strong: Color32::from_rgb(0xC8, 0xC8, 0xC8),
++            title_bar: Color32::from_gray(182),
++            ribbon: Color32::from_gray(205),
++            tab_strip: Color32::from_gray(190),
++            canvas: Color32::from_gray(88),
++            panel: Color32::from_gray(218),
++            border: Color32::from_gray(148),
++            border_strong: Color32::from_gray(110),
+             text: Color32::from_rgb(0x24, 0x24, 0x24),
+-            text_dim: Color32::from_rgb(0x61, 0x61, 0x61),
+-            text_disabled: Color32::from_rgb(0xA8, 0xA8, 0xA8),
++            text_dim: Color32::from_gray(65),
++            text_disabled: Color32::from_gray(120),
+             icon: Color32::from_rgb(0x42, 0x42, 0x42),
+-            hover: Color32::from_rgb(0xE6, 0xE6, 0xE6),
+-            pressed: Color32::from_rgb(0xD6, 0xD6, 0xD6),
++            hover: Color32::from_gray(221),
++            pressed: Color32::from_gray(174),
+             checked: Color32::from_rgb(0xDD, 0xE3, 0xF8),
+             accent: APP_COLOR,
+             nav: APP_COLOR,
+             accent_text: APP_INK,
+             on_accent: Color32::WHITE,
+-            input: Color32::WHITE,
+-            input_border: Color32::from_rgb(0x8A, 0x8A, 0x8A),
+-            group_label: Color32::from_rgb(0x70, 0x70, 0x70),
+-            ruler: Color32::from_rgb(0xFF, 0xFF, 0xFF),
+-            ruler_margin: Color32::from_rgb(0xD4, 0xD4, 0xD4),
+-            ruler_tick: Color32::from_rgb(0x70, 0x70, 0x70),
+-            status_bar: Color32::from_rgb(0xF0, 0xF0, 0xF0),
++            input: Color32::from_gray(232),
++            input_border: Color32::from_gray(94),
++            group_label: Color32::from_gray(70),
++            ruler: Color32::from_gray(205),
++            ruler_margin: Color32::from_gray(160),
++            ruler_tick: Color32::from_gray(70),
++            status_bar: Color32::from_gray(182),
+             selection: Color32::from_rgba_unmultiplied(0x3B, 0x5B, 0xDB, 0x48),
+             find_highlight: Color32::from_rgba_unmultiplied(0xFF, 0xE0, 0x3D, 0x90),
+             page_shadow: Color32::from_rgba_unmultiplied(0, 0, 0, 0x22),
+@@ -356,7 +357,7 @@ impl Tokens {
+                 Color32::from_rgb(0x8E, 0x44, 0xAD),
+                 Color32::from_rgb(0xE0, 0x7B, 0x1F),
+             ],
+-            menu: Color32::WHITE,
++            menu: Color32::from_gray(235),
+             blue: Color32::from_rgb(0x2F, 0x6F, 0xD0),
+             red: Color32::from_rgb(0xD1, 0x3B, 0x3B),
+             green: Color32::from_rgb(0x2E, 0x8B, 0x57),
