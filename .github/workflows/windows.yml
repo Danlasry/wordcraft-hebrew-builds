@@ -1,0 +1,40 @@
+name: Build WordCraft Hebrew for Windows
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/windows.yml', 'build.ps1', 'patches/**']
+permissions:
+  contents: read
+concurrency:
+  group: windows-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  build:
+    runs-on: windows-2022
+    timeout-minutes: 75
+    env:
+      CARGO_INCREMENTAL: '0'
+      CARGO_PROFILE_DEV_DEBUG: '0'
+      CARGO_PROFILE_TEST_DEBUG: '0'
+      CARGO_PROFILE_RELEASE_DEBUG: '0'
+      CARGO_BUILD_JOBS: '4'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Install Rust
+        shell: pwsh
+        run: |
+          rustup toolchain install 1.95.0 --profile minimal --target x86_64-pc-windows-msvc
+          if ($LASTEXITCODE -ne 0) { throw 'Rust installation failed' }
+      - name: Build and test
+        shell: pwsh
+        run: ./build.ps1
+      - name: Upload application
+        uses: actions/upload-artifact@v4
+        with:
+          name: WordCraft-Hebrew-Windows-x64
+          path: dist/
+          if-no-files-found: error
+          retention-days: 30

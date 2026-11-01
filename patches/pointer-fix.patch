@@ -1,0 +1,64 @@
+diff --git a/crates/ui-egui/src/ibeam.rs b/crates/ui-egui/src/ibeam.rs
+index ccb811c8..ca86901a 100644
+--- a/crates/ui-egui/src/ibeam.rs
++++ b/crates/ui-egui/src/ibeam.rs
+@@ -19,6 +19,12 @@ pub(crate) fn replace(ctx: &egui::Context, p: Pos2, bg: Rgb) -> bool {
+     ctx.set_cursor_icon(CursorIcon::None);
+     // Above the page and whatever floats over it, as the system pointer would be.
+     let painter = ctx.layer_painter(LayerId::new(Order::Tooltip, Id::unique("wordcraft_ibeam")));
++    // Keep the software pointer at the physical mouse position: the document is
++    // translated, but this tooltip layer is reflected by the RTL output pass.
++    // Pre-reflect its displayed page position so the output reflection cancels it.
++    let r = egui::Rect::from_min_size(p, egui::Vec2::ZERO);
++    let shown = crate::mirror::page_to_window(ctx, ctx.viewport_id(), r);
++    let p = crate::mirror::interface_to_window(ctx, ctx.viewport_id(), shown).min;
+     paint(&painter, p, crate::canvas::caret_contrast(bg));
+     true
+ }
+@@ -60,6 +66,46 @@ mod tests {
+     use crate::WordApp;
+     use egui::{Color32, CursorIcon, Shape};
+ 
++
++    /// The Windows software pointer follows the physical mouse in both interface directions,
++    /// including when a sidebar changes the canvas's horizontal offset.
++    #[test]
++    fn pointer_tracks_mouse() {
++        use egui::{Context, Event, Pos2, RawInput, Rect, pos2, vec2};
++        for rtl in [false, true] {
++            for left in [0.0, 80.0] {
++                let ctx = Context::default();
++                let canvas = Rect::from_min_max(pos2(left, 40.0), pos2(320.0, 280.0));
++                for x in [140.0, 180.0, 220.0] {
++                    let at = pos2(x, 120.0);
++                    let mut out = egui::FullOutput::default();
++                    for _ in 0..3 {
++                        crate::mirror::configure(&ctx, rtl, Some(canvas), &[], &[]);
++                        out = ctx.run_ui(
++                            RawInput {
++                                screen_rect: Some(Rect::from_min_size(Pos2::ZERO, vec2(400.0, 300.0))),
++                                events: vec![Event::PointerMoved(at)],
++                                ..Default::default()
++                            },
++                            |ui| {
++                                ui.ctx().set_cursor_icon(CursorIcon::Text);
++                                let p = ui.ctx().pointer_hover_pos().unwrap();
++                                assert!(super::replace(ui.ctx(), p, wordcraft_doc::props::Rgb(255, 255, 255)));
++                            },
++                        );
++                        out.textures_delta.clear();
++                    }
++                    let stem = out.shapes.iter().find_map(|c| match &c.shape {
++                        Shape::LineSegment { points: [a, b], stroke }
++                            if a.x == b.x && stroke.width == 1.0 && (b.y - a.y - 16.0).abs() < 0.01 => Some(a.x),
++                        _ => None,
++                    }).expect("software pointer stem");
++                    assert!((stem - at.x).abs() <= 0.5, "rtl={rtl}, canvas_left={left}: mouse={x}, stem={stem}");
++                }
++            }
++        }
++    }
++
+     type H = egui_kittest::Harness<'static, WordApp>;
+ 
+     fn window(drawn: bool, dark: bool) -> H {

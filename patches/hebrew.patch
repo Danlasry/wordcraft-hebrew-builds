@@ -1,0 +1,2129 @@
+diff --git a/README.md b/README.md
+index fbe286f7..16f29b42 100644
+--- a/README.md
++++ b/README.md
+@@ -124,7 +124,7 @@ Every screenshot below is WordCraft itself, rendered offscreen by its own UI tes
+ | **References** | Table of contents, footnotes and endnotes, citations and bibliography (APA, MLA, Chicago, IEEE), captions, table of figures, cross-references, index, table of authorities |
+ | **Review** | Spelling and grammar with suggestions (English and Polish, by each run's language), thesaurus, word count, comments in margin balloons or a pane, track changes, accept/reject, compare documents, restrict editing, accessibility checker, document inspector |
+ | **Mailings** | Mail merge from CSV, merge fields, address block, greeting line, rules, preview, finish to a document; envelopes and labels |
+-| **View** | Print layout, web layout, draft, read mode, focus, zoom, one/multiple pages, page width, Navigation pane, rulers, gridlines, dark mode; interface in English, 简体中文, 繁體中文, 日本語, Português (Brasil), Español, Українська, Српски / Srpski, Eesti, Türkçe, Русский, Italiano, Deutsch, Polski, Čeština, Magyar, Français, Български, Tiếng Việt, 한국어, Svenska, Hrvatski or Slovenščina (follows the system language by default) |
++| **View** | Print layout, web layout, draft, read mode, focus, zoom, one/multiple pages, page width, Navigation pane, rulers, gridlines, dark mode; interface in English, 简体中文, 繁體中文, 日本語, Português (Brasil), Español, Українська, Српски / Srpski, Eesti, Türkçe, Русский, Italiano, Deutsch, Polski, Čeština, Magyar, Français, Български, Tiếng Việt, 한국어, Svenska, Hrvatski, Slovenščina or עברית (follows the system language by default) |
+ | **Files** | .docx read/write, legacy 97-2003 .doc import, PDF export, .odt, .rtf, .html, .md, .tex, .txt import/export, page images |
+ 
+ The honest picture, area by area, is in [ROADMAP.md](ROADMAP.md), the
+diff --git a/ROADMAP.md b/ROADMAP.md
+index f261d85b..a3891fd1 100644
+--- a/ROADMAP.md
++++ b/ROADMAP.md
+@@ -122,6 +122,8 @@ Also shipped: Traditional Chinese (`zh-hant`), Ukrainian (`uk`), Serbian (`sr`,
+ system-locale selection and a saved language choice (Italian also has 51 strings none of the others had yet); Estonian proofing is not included. Hungarian (`hu`) has a
+ complete 2,419-entry catalog, also without proofing. Vietnamese (`vi`, #1434) has a complete
+ 2,448-entry catalog, also without proofing. Croatian (`hr`, #1271) has a complete catalog.
++Hebrew (`he`) has a mirrored right-to-left interface from craft-i18n's catalog; Hebrew proofing is
++not included.
+ Proofing: English, Polish, Portuguese, Italian, Croatian, Turkish and Russian (spelling, grammar; hyphenation except Croatian), plus Czech, Indonesian and Spanish (system Hunspell spelling, generic checks; Spanish per variety: Spain, Mexico, Latin America, Uruguay), chosen per run from its language; Bulgarian and German hyphenation only. Word ships
+ 30 interface languages and proofing for ~50. Detail: [docs/localization-parity.md](docs/localization-parity.md).
+ 
+@@ -630,6 +632,7 @@ Imported Word 97–2003 `.doc`/`.dot` files now ask for a supported DOCX target
+ | 2026-10-11 | Word's common keyboard shortcuts (#330): 101 → 125 of ~250 |
+ | 2026-10-15 | Slovenian (`sl`) interface: 2,614 catalog entries (every key of every other catalog, including native print settings), `sl-SI` system locales and a saved language choice; locale, catalog and bundled-font tests; no Slovenian proofing resources |
+ | 2026-10-13 | Swedish (`sv`) interface: 2,504 catalog entries (every key of the reference catalog, the equation gallery, everything the interface audit finds, and 44 newer strings no catalog had yet, among them the native print settings), `sv-SE`/`sv-FI` system locales and a saved language choice; locale, catalog and bundled-font tests; AI-assisted, terminology and the running app reviewed by a native speaker; no Swedish proofing resources |
++| 2026-10-26 | Hebrew (`he`) interface: `he-IL` system locales and a saved language choice once craft-i18n has the catalog; Hebrew labels borrow an installed sans-serif face (the embedded interface fonts have none); the whole interface is mirrored as it is painted (ribbon, menus, dialogs, panes), each window on its own, the document canvas excepted; text keeps the egui fork's right-to-left layout; no Hebrew proofing resources |
+ | 2026-10-12 | Bulgarian (`bg`) interface: 2,419 catalog entries (every key of the reference catalog, the equation gallery and everything the interface audit finds), `bg-BG` system locales and a saved language choice; locale, catalog and bundled-font tests; no Bulgarian proofing resources |
+ | 2026-10-13 | Croatian (`hr`) interface: 2,507 catalog entries (every key of the reference catalog, built-in style names and the equation gallery), `hr-*` system locales and a saved language choice; locale, catalog and bundled-font tests; no Croatian proofing yet |
+ | 2026-10-11 | Hungarian (`hu`) interface: all 2,419 catalog entries, built-in style names translated, `hu-HU` system locales and a saved language choice; locale, catalog and bundled-font tests; no Hungarian proofing resources |
+@@ -1014,6 +1017,7 @@ Footer page-table height and body wrapping are corrected. Other pagination gaps
+ | 2026-10-11 | trivial | Word's common keyboard shortcuts (#330): 125 of ~250 |
+ | 2026-10-11 | trivial | Collapsed duplicate rows left by parallel merges |
+ | 2026-10-13 | trivial | Swedish interface (`sv`): progress log and shipped languages |
++| 2026-10-19 | trivial | Hebrew interface (`he`): progress log and shipped languages |
+ | 2026-10-12 | trivial | Bulgarian interface (`bg`): progress log and shipped languages |
+ | 2026-10-13 | trivial | Croatian interface (`hr`): progress log and shipped languages |
+ | 2026-10-11 | trivial | Hungarian interface (`hu`): progress log and shipped languages |
+diff --git a/craft-i18n.rev b/craft-i18n.rev
+index fd264c67..9ff31dd7 100644
+--- a/craft-i18n.rev
++++ b/craft-i18n.rev
+@@ -1 +1 @@
+-9205108cfdced5177706264038848b68b2422d2b
++19358491340b9f33d618673de6bcd40108d9a775
+diff --git a/crates/fonts/src/lib.rs b/crates/fonts/src/lib.rs
+index 3c70572c..46cc37a3 100644
+--- a/crates/fonts/src/lib.rs
++++ b/crates/fonts/src/lib.rs
+@@ -185,6 +185,35 @@ pub fn shape(face: &FontFace, text: &str, features: &[Feature], map: impl Fn(cha
+     out
+ }
+ 
++/// [`shape`] in visual order for a one-line, left-to-right label drawn without the line layout
++/// (a font list entry): direction runs left to right, a right-to-left run's glyphs in the order
++/// they're drawn, so a Hebrew name doesn't come out backwards. The runs are the Unicode bidi
++/// algorithm's for a left-to-right line, so numbers in a Hebrew name keep their digits in order.
++pub fn shape_visual(face: &FontFace, text: &str, features: &[Feature], map: impl Fn(char) -> char) -> Vec<ShapedGlyph> {
++    let mut out = Vec::with_capacity(text.len());
++    let info = unicode_bidi::BidiInfo::new(text, Some(unicode_bidi::Level::ltr()));
++    for para in &info.paragraphs {
++        let (levels, runs) = info.visual_runs(para, para.range.clone());
++        for r in runs {
++            let Some(sub) = text.get(r.clone()) else { continue };
++            let rtl = levels[r.start].is_rtl();
++            let mut g = shape_dir(face, sub, features, &map, rtl);
++            for x in &mut g {
++                x.cluster += r.start;
++            }
++            if rtl {
++                // Drawn last character first: each script run comes back that way from the
++                // shaper, but the runs themselves (a Hebrew word, then an Arabic one) in text order.
++                let mut groups = cluster_groups(g);
++                groups.sort_by_key(|grp| std::cmp::Reverse(grp.first().map_or(0, |f| f.cluster)));
++                g = groups.into_iter().flatten().collect();
++            }
++            out.extend(g);
++        }
++    }
++    out
++}
++
+ /// Shape `text` as one run in a known direction (the caller ran the bidi algorithm: `rtl` is an
+ /// odd embedding level). Right-to-left runs get Arabic joining, mirrored brackets and right-to-left
+ /// mark positioning. Glyphs come back in logical order like [`shape`]: clusters in text order,
+@@ -195,6 +224,13 @@ pub fn shape_run(face: &FontFace, text: &str, features: &[Feature], map: impl Fn
+         return g;
+     }
+     // Visual (clusters descending) → logical, cluster by cluster.
++    let mut groups = cluster_groups(g);
++    groups.sort_by_key(|grp| grp.first().map_or(0, |f| f.cluster));
++    groups.into_iter().flatten().collect()
++}
++
++/// `g` split into its clusters, each cluster's glyphs kept in the shaper's order.
++fn cluster_groups(g: Vec<ShapedGlyph>) -> Vec<Vec<ShapedGlyph>> {
+     let mut groups: Vec<Vec<ShapedGlyph>> = Vec::new();
+     for x in g {
+         match groups.last_mut() {
+@@ -202,8 +238,7 @@ pub fn shape_run(face: &FontFace, text: &str, features: &[Feature], map: impl Fn
+             _ => groups.push(vec![x]),
+         }
+     }
+-    groups.sort_by_key(|grp| grp.first().map_or(0, |f| f.cluster));
+-    groups.into_iter().flatten().collect()
++    groups
+ }
+ 
+ fn shape_dir(face: &FontFace, text: &str, features: &[Feature], map: &impl Fn(char) -> char, rtl: bool) -> Vec<ShapedGlyph> {
+@@ -348,6 +383,21 @@ mod tests {
+         }
+     }
+ 
++    /// A one-line label is drawn in the order `shape_visual` returns: a Hebrew run comes back
++    /// right to left (last letter first), Latin around it left to right.
++    #[test]
++    fn visual_shaping_draws_hebrew_right_to_left() {
++        let face = FontDb::global().face(DEFAULT_FAMILY, "Regular");
++        let clusters = |t: &str| shape_visual(&face, t, &[], |c| c).iter().map(|g| g.cluster).collect::<Vec<_>>();
++        assert_eq!(clusters("Ab"), vec![0, 1]);
++        assert_eq!(clusters("אבג"), vec![4, 2, 0]);
++        assert_eq!(clusters("A אב"), vec![0, 1, 4, 2]);
++        // A number in a Hebrew name keeps its digits in order, at the left of the letters.
++        assert_eq!(clusters("אב 12"), vec![5, 6, 4, 2, 0]);
++        // Hebrew then Arabic, one right-to-left run in two scripts: the Hebrew word at the right.
++        assert_eq!(clusters("אב عرب"), vec![9, 7, 5, 4, 2, 0]);
++    }
++
+     #[test]
+     fn shaping_produces_clusters_and_advances() {
+         let face = FontDb::global().face(DEFAULT_FAMILY, "Regular");
+diff --git a/crates/render/src/lib.rs b/crates/render/src/lib.rs
+index 85347350..bcffc7f4 100644
+--- a/crates/render/src/lib.rs
++++ b/crates/render/src/lib.rs
+@@ -401,7 +401,7 @@ pub fn render_text_line(face: &wordcraft_fonts::FontFace, text: &str, size: f32,
+     let baseline = (h as f64 + cap * k) / 2.0;
+     let mut x = margin;
+     let colour = face.has_color_glyphs();
+-    for g in wordcraft_fonts::shape(face, text, &[], |c| c) {
++    for g in wordcraft_fonts::shape_visual(face, text, &[], |c| c) {
+         let at = view * Affine::translate((x + g.x_offset as f64 * k, baseline - g.y_offset as f64 * k)) * Affine::scale(k);
+         if colour && let Some(d) = color_glyph::drawable(face, g.gid, size * scale as f64, false) {
+             color_glyph::draw(&mut ctx, &d, at, upem, color(Rgb(0, 0, 0), 1.0), 1.0);
+@@ -424,6 +424,13 @@ pub fn render_text_line(face: &wordcraft_fonts::FontFace, text: &str, size: f32,
+     Rendered { width: w16 as u32, height: h16 as u32, pixels }
+ }
+ 
++/// How wide [`render_text_line`] draws `text` in `face` at `size` points, in points.
++pub fn text_line_width(face: &wordcraft_fonts::FontFace, text: &str, size: f32) -> f32 {
++    let upem = if face.upem.is_finite() && face.upem > 0.0 { face.upem } else { 1000.0 };
++    let units: f64 = wordcraft_fonts::shape_visual(face, text, &[], |c| c).iter().map(|g| f64::from(g.x_advance)).sum();
++    (units * f64::from(size) / upem) as f32
++}
++
+ fn draw_watermark(ctx: &mut RenderContext, view: Affine, page: &Page, wm: &wordcraft_doc::Watermark, opts: &RenderOptions) {
+     let r = wordcraft_fonts::word::resolve(&wm.font, false, false);
+     let face = r.face;
+diff --git a/crates/ui-egui/src/app.rs b/crates/ui-egui/src/app.rs
+index 6223b571..f72b2c4b 100644
+--- a/crates/ui-egui/src/app.rs
++++ b/crates/ui-egui/src/app.rs
+@@ -117,6 +117,9 @@ impl WordApp {
+             want_system_cjk: false,
+             recover_fonts_for: None,
+             recent_fonts_for: Vec::new(),
++            fonts_lang: None,
++            want_language_name_fonts: false,
++            fonts_language_names: false,
+             fonts_frames: 0,
+             applied_theme: None,
+             native_scale: 1.0,
+@@ -242,6 +245,7 @@ impl WordApp {
+         // in this frame (dialog, drop, control channel) is picked up again at the end.
+         self.ensure_caption_fonts();
+         self.ensure_comment_fonts();
++        self.ensure_language_fonts(lang);
+         self.ensure_recover_fonts();
+         self.ensure_recent_fonts();
+         self.ensure_find_fonts();
+@@ -346,6 +350,7 @@ impl WordApp {
+         // The open above may have changed the file name the caption draws.
+         self.ensure_caption_fonts();
+         self.ensure_comment_fonts();
++        self.ensure_language_fonts(lang);
+         self.ensure_recover_fonts();
+         self.ensure_recent_fonts();
+         self.ensure_find_fonts();
+diff --git a/crates/ui-egui/src/app/fonts.rs b/crates/ui-egui/src/app/fonts.rs
+index 7f320ca3..839b5caf 100644
+--- a/crates/ui-egui/src/app/fonts.rs
++++ b/crates/ui-egui/src/app/fonts.rs
+@@ -10,6 +10,9 @@ impl WordApp {
+             return;
+         }
+         self.font_generation = generation;
++        // A face added since may have the interface language's letters: look for them again.
++        self.fonts_lang = None;
++        self.fonts_language_names = false;
+         self.session.relayout();
+         self.previews.fonts_changed(ctx, db.user_fonts().iter().flat_map(|f| f.families()));
+         ctx.request_repaint();
+@@ -24,9 +27,7 @@ impl WordApp {
+         if stem.chars().any(wordcraft_fonts::is_cjk) {
+             self.want_system_cjk = true;
+         }
+-        let new = theme::faces_for_preedit(&stem, &self.canvas.ime_faces, theme::caption_char_covered, |c| {
+-            wordcraft_fonts::FontDb::global().fallback_for(c, u32::MAX)
+-        });
++        let new = theme::faces_for_preedit(&stem, &self.canvas.ime_faces, theme::caption_char_covered, theme::interface_fallback);
+         if !new.is_empty() {
+             self.canvas.ime_faces.extend(new);
+             // Fonts are already installed for this frame's language; load the new faces too.
+@@ -54,9 +55,30 @@ impl WordApp {
+             self.want_system_cjk = true;
+         }
+         let text: String = chars.into_iter().collect();
+-        let new = theme::faces_for_preedit(&text, &self.canvas.ime_faces, theme::caption_char_covered, |c| {
+-            wordcraft_fonts::FontDb::global().fallback_for(c, u32::MAX)
+-        });
++        let new = theme::faces_for_preedit(&text, &self.canvas.ime_faces, theme::caption_char_covered, theme::interface_fallback);
++        if !new.is_empty() {
++            self.canvas.ime_faces.extend(new);
++            self.styled = false;
++        }
++    }
++
++    /// An interface language in a script the interface faces lack (Hebrew) would draw as boxes.
++    /// Borrow the document fonts' fallback faces for its catalog, as the caption does for a file
++    /// name, once per language; and for the language names when File ▸ Options lists them.
++    pub(super) fn ensure_language_fonts(&mut self, lang: i18n::Lang) {
++        let mut text = String::new();
++        if self.fonts_lang != Some(lang.code()) {
++            self.fonts_lang = Some(lang.code());
++            text.extend(lang.catalog_texts());
++        }
++        if self.want_language_name_fonts && !self.fonts_language_names {
++            self.fonts_language_names = true;
++            text.extend(i18n::Lang::all().map(i18n::Lang::name));
++        }
++        if text.is_empty() {
++            return;
++        }
++        let new = theme::faces_for_preedit(&text, &self.canvas.ime_faces, theme::interface_char_covered, theme::interface_fallback);
+         if !new.is_empty() {
+             self.canvas.ime_faces.extend(new);
+             self.styled = false;
+diff --git a/crates/ui-egui/src/app/frame.rs b/crates/ui-egui/src/app/frame.rs
+index 2ecbe402..0e67d008 100644
+--- a/crates/ui-egui/src/app/frame.rs
++++ b/crates/ui-egui/src/app/frame.rs
+@@ -1,9 +1,10 @@
+ #[cfg(not(target_arch = "wasm32"))]
+ use super::file_browser;
+ use super::{
+-    WordApp, backstage, canvas, chrome, colors, content_controls, dialogs, documents, keys, now_ms, panes, read_aloud, ribbon, theme, updates_ui,
+-    zotero,
++    WordApp, backstage, canvas, chrome, colors, content_controls, dialogs, documents, i18n, keys, now_ms, panes, read_aloud, ribbon, theme,
++    updates_ui, zotero,
+ };
++use crate::mirror;
+ 
+ impl WordApp {
+     /// A file that wouldn't open (#1103): log it, and say on the status bar which file and why,
+@@ -48,6 +49,7 @@ impl WordApp {
+     pub(super) fn paint_window(&mut self, ui: &mut egui::Ui, ctx: &egui::Context, t: theme::Tokens) {
+         let window = self.windows.shown();
+         let moved = |app: &WordApp| app.windows.shown() != window;
++        self.canvas.view_rect = None;
+         if self.ui.backstage {
+             backstage::show(self, ui);
+         } else if !self.has_document() {
+@@ -92,6 +94,29 @@ impl WordApp {
+     pub(super) fn show_overlays(&mut self, ui: &mut egui::Ui, ctx: &egui::Context) {
+         let window = self.windows.shown();
+         let moved = |app: &WordApp| app.windows.shown() != window;
++        // A right-to-left interface is mirrored as it is painted, each window on its own; the page
++        // and the popups placed from it move without flipping.
++        // The context menu opens from a point; the selection bar (centred on the selection), the
++        // content control's list (under its field) and the ink replay bar (centred on the page)
++        // stay where they are.
++        let anchored: Vec<(egui::Id, mirror::Anchor)> = self
++            .canvas
++            .context_menu_id
++            .map(|id| (id, mirror::Anchor::Edge))
++            .into_iter()
++            .chain(
++                [
++                    ("wc_mini_toolbar", mirror::Anchor::InPlace),
++                    ("content_control_popup", mirror::Anchor::InPlace),
++                    ("ink_replay_bar", mirror::Anchor::InPlace),
++                ]
++                .map(|(name, anchor)| (egui::Id::unique(name), anchor)),
++            )
++            .collect();
++        // Floating comment cards are painted over the page, outside any area egui sizes.
++        let overlays: Vec<egui::Rect> =
++            if self.canvas.balloons_float { self.canvas.balloon_rects.iter().map(|(_, r)| *r).collect() } else { Vec::new() };
++        mirror::configure(ctx, i18n::current().rtl(), self.canvas.view_rect, &anchored, &overlays);
+         content_controls::popup(self, ctx);
+         dialogs::show(self, ctx);
+         if moved(self) {
+diff --git a/crates/ui-egui/src/canvas.rs b/crates/ui-egui/src/canvas.rs
+index e773a682..4ae37c0b 100644
+--- a/crates/ui-egui/src/canvas.rs
++++ b/crates/ui-egui/src/canvas.rs
+@@ -168,6 +168,13 @@ pub struct CanvasState {
+     pub context_menu_from_keys: bool,
+     /// Where the context menu stands: the right-click point, or below the caret.
+     pub context_menu_at: Option<Pos2>,
++    /// The context menu's popup id: a mirrored interface moves it with the page ([`crate::mirror`]).
++    pub(crate) context_menu_id: Option<egui::Id>,
++    /// The canvas with its rulers this frame, when the document is on screen.
++    pub(crate) view_rect: Option<Rect>,
++    /// Whether this frame's balloons are floating comments, painted in a layer over the page
++    /// (a mirrored interface flips them with it), rather than in the margin, with the page.
++    pub(crate) balloons_float: bool,
+     /// The frame drawn around the equation being edited, on screen (its options strip opens the
+     /// equation's menu).
+     pub eq_options: Option<EquationFrame>,
+@@ -385,6 +392,9 @@ impl Default for CanvasState {
+             context_menu_open: false,
+             context_menu_from_keys: false,
+             context_menu_at: None,
++            context_menu_id: None,
++            view_rect: None,
++            balloons_float: false,
+             eq_options: None,
+             mini_anchor: None,
+             mini_dismissed: None,
+@@ -1229,6 +1239,7 @@ fn finish_canvas_frame(finish: CanvasFinish<'_>, out: egui::scroll_area::ScrollA
+     }
+     // The standalone selection toolbar stands down while the context popup owns the pointer.
+     app.canvas.context_menu_open = shown;
++    app.canvas.context_menu_id = Some(egui::Popup::default_response_id(&resp));
+     if let Some(c) = crate::ink::cursor(app).filter(|_| resp.hovered() || app.canvas.ink.is_some()) {
+         ui.ctx().set_cursor_icon(c);
+     } else if resp.hovered() || app.canvas.obj_drag.is_some() {
+@@ -1312,6 +1323,7 @@ fn finish_canvas_frame(finish: CanvasFinish<'_>, out: egui::scroll_area::ScrollA
+ pub fn show(app: &mut WordApp, ui: &mut Ui) {
+     let t = Tokens::get(ui.ctx());
+     let full = ui.available_rect_before_wrap();
++    app.canvas.view_rect = Some(full);
+     let layout = prepare_layout(app, ui, full);
+     let view = prepare_view(app, ui, full, &layout);
+     let scroll_target = update_caret_scroll(app, &view);
+@@ -1538,7 +1550,7 @@ pub fn show(app: &mut WordApp, ui: &mut Ui) {
+                     &app.canvas.ime_preedit,
+                     &app.canvas.ime_faces,
+                     |c| (c as u32) < 0x250,
+-                    |c| wordcraft_fonts::FontDb::global().fallback_for(c, u32::MAX),
++                    crate::theme::interface_fallback,
+                 );
+                 if !new.is_empty() {
+                     app.canvas.ime_faces.extend(new);
+diff --git a/crates/ui-egui/src/canvas/balloons.rs b/crates/ui-egui/src/canvas/balloons.rs
+index 445bacd1..46f59bb9 100644
+--- a/crates/ui-egui/src/canvas/balloons.rs
++++ b/crates/ui-egui/src/canvas/balloons.rs
+@@ -12,6 +12,7 @@ pub(super) fn balloons(app: &mut WordApp, ui: &mut Ui, painter: &egui::Painter,
+     app.canvas.balloon_rects.clear();
+     let mw = markup_width(app);
+     let float = floating_comments(app);
++    app.canvas.balloons_float = float;
+     if app.canvas.balloon.is_some_and(|id| (mw <= 0.0 && !float) || !app.session.doc.comments.contains_key(&id)) {
+         deselect_balloon(app);
+     }
+diff --git a/crates/ui-egui/src/control/handler.rs b/crates/ui-egui/src/control/handler.rs
+index 117d54c5..282e197a 100644
+--- a/crates/ui-egui/src/control/handler.rs
++++ b/crates/ui-egui/src/control/handler.rs
+@@ -15,18 +15,27 @@ fn err(e: impl std::fmt::Display) -> Outcome {
+ }
+ 
+ pub fn inspect(app: &mut WordApp, ctx: &egui::Context) -> Value {
+-    let r = ctx.input_for(app.active_viewport(), |i| i.content_rect());
+-    let caret = crate::canvas::caret_screen(app).map(|(p, h)| json!({"x": p.x, "y": p.y, "h": h}));
++    let viewport = app.active_viewport();
++    let r = ctx.input_for(viewport, |i| i.content_rect());
++    // Where they are drawn (a right-to-left interface draws the page moved): what ui.click takes.
++    let drawn = |r: egui::Rect| crate::mirror::page_to_window(ctx, viewport, r);
++    // Balloons in the margin move with the page; floating comments flip with the interface.
++    let float = app.canvas.balloons_float;
++    let balloon = |r: egui::Rect| if float { crate::mirror::interface_to_window(ctx, viewport, r) } else { drawn(r) };
++    let caret = crate::canvas::caret_screen(app).map(|(p, h)| {
++        let p = drawn(egui::Rect::from_min_size(p, egui::Vec2::ZERO)).min;
++        json!({"x": p.x, "y": p.y, "h": h})
++    });
+     json!({
+         "ui": app.prefs(),
+         "view": app.session.view,
+         "dialog": app.dialog.as_ref().map(|d| serde_json::to_value(d).unwrap_or_default()),
+         "window": [r.width(), r.height()],
+-        "canvasRect": app.canvas.canvas_rect.map(|c| [c.left(), c.top(), c.width(), c.height()]),
+-        "pages": app.canvas.page_rects.iter().map(|r| [r.left(), r.top(), r.width(), r.height()]).collect::<Vec<_>>(),
++        "canvasRect": app.canvas.canvas_rect.map(drawn).map(|c| [c.left(), c.top(), c.width(), c.height()]),
++        "pages": app.canvas.page_rects.iter().map(|r| drawn(*r)).map(|r| [r.left(), r.top(), r.width(), r.height()]).collect::<Vec<_>>(),
+         "scale": app.canvas.scale,
+         "caret": caret,
+-        "balloons": app.canvas.balloon_rects.iter().map(|(id, r)| json!({"id": id, "rect": [r.left(), r.top(), r.width(), r.height()]})).collect::<Vec<_>>(),
++        "balloons": app.canvas.balloon_rects.iter().map(|(id, r)| (id, balloon(*r))).map(|(id, r)| json!({"id": id, "rect": [r.left(), r.top(), r.width(), r.height()]})).collect::<Vec<_>>(),
+         "balloon": app.canvas.balloon,
+         "focused": app.canvas.focused,
+         "title": app.title_stem(),
+@@ -233,6 +242,8 @@ pub fn handle(app: &mut WordApp, ctx: &egui::Context, req: &ControlRequest) -> O
+             let page = p.get("page").and_then(Value::as_u64).unwrap_or(0) as usize;
+             let (Some(x), Some(y)) = (f("x"), f("y")) else { return err("missing x/y") };
+             let Some(pos) = crate::canvas::page_to_screen(app, page, x, y) else { return err("page not on screen") };
++            // Clicked where it is drawn, like ui.click: the mirror maps it back once.
++            let pos = crate::mirror::page_to_window(ctx, app.active_viewport(), egui::Rect::from_min_size(pos, egui::Vec2::ZERO)).min;
+             let count = p.get("count").and_then(Value::as_u64).unwrap_or(1);
+             click_events(app, pos, egui::PointerButton::Primary, count, mods(p));
+             ok(json!({"screen": [pos.x, pos.y]}))
+diff --git a/crates/ui-egui/src/i18n.rs b/crates/ui-egui/src/i18n.rs
+index 63a1c52d..d3c4a932 100644
+--- a/crates/ui-egui/src/i18n.rs
++++ b/crates/ui-egui/src/i18n.rs
+@@ -70,7 +70,7 @@ pub struct LangInfo {
+ 
+ /// The languages WordCraft offers, when their catalogs are embedded. English first: it is the
+ /// fallback and the source language.
+-pub static LANGUAGES: [LangInfo; 27] = [
++pub static LANGUAGES: [LangInfo; 28] = [
+     LangInfo { code: "en", prefer_hans: false, editing_lang: None },
+     // Simplified Chinese; `zh`, `zh-CN`, `zh-SG` and `zh-Hans-*` resolve here (the crate's matching).
+     LangInfo { code: "zh-hans", prefer_hans: true, editing_lang: None },
+@@ -126,6 +126,10 @@ pub static LANGUAGES: [LangInfo; 27] = [
+     LangInfo { code: "ro", prefer_hans: false, editing_lang: None },
+     // Slovenian; `sl`, `sl-SI` and `sl_SI.UTF-8` resolve here.
+     LangInfo { code: "sl", prefer_hans: false, editing_lang: None },
++    // Hebrew; `he`, `he-IL` and `he_IL.UTF-8` resolve here. The interface fonts have no Hebrew
++    // letters: the app borrows an installed face for them (`WordApp::ensure_language_fonts`).
++    // Written right to left: the interface is mirrored as it is painted (`crate::mirror`).
++    LangInfo { code: "he", prefer_hans: false, editing_lang: None },
+ ];
+ 
+ /// A language the UI can be shown in: English, or an offered language whose catalogs are embedded.
+@@ -171,6 +175,20 @@ impl Lang {
+         self.i18n().name(self.lang)
+     }
+ 
++    /// Written right to left (Hebrew): the interface is mirrored (`crate::mirror`).
++    pub fn rtl(self) -> bool {
++        self.code() == "he"
++    }
++
++    /// Letters a font list entry shows after the name of a font that has them, as Word does for
++    /// the scripts it's set up to write: Hebrew in the Hebrew interface.
++    pub fn font_sample(self) -> Option<&'static str> {
++        match self.code() {
++            "he" => Some("אבגד הוז"),
++            _ => None,
++        }
++    }
++
+     pub fn prefers_hans(self) -> bool {
+         self.info().is_some_and(|l| l.prefer_hans)
+     }
+@@ -194,7 +212,7 @@ impl Lang {
+     }
+ 
+     /// The embedded catalogs (shared, then WordCraft's) this language reads; none for English.
+-    fn catalog_texts(self) -> impl Iterator<Item = &'static str> {
++    pub fn catalog_texts(self) -> impl Iterator<Item = &'static str> {
+         let code = self.code();
+         CRAFT_I18N.iter().filter(move |(c, ..)| c.eq_ignore_ascii_case(code)).flat_map(|(_, shared, app)| [*shared, *app])
+     }
+diff --git a/crates/ui-egui/src/i18n/tests.rs b/crates/ui-egui/src/i18n/tests.rs
+index a5930b5b..7f4024f5 100644
+--- a/crates/ui-egui/src/i18n/tests.rs
++++ b/crates/ui-egui/src/i18n/tests.rs
+@@ -1189,3 +1189,64 @@ fn the_flatpak_manifest_pins_the_craft_i18n_rev() {
+     assert_eq!(commit.trim().trim_matches(['\'', '"']), rev);
+     assert!(manifest.contains("CRAFT_I18N_DIR: /run/build/wordcraft/craft-i18n"), "the build embeds the catalogs");
+ }
++
++/// Hebrew, from the pinned catalogs: its locales and the saved setting pick it, and it is the one
++/// language written right to left.
++#[test]
++fn hebrew_locales_and_saved_preference_work_without_changing_the_document() {
++    needs_catalogs!();
++    let he = Lang::from_code("he").expect("the catalogs craft-i18n.rev pins have Hebrew");
++    for tag in ["he", "he-IL", "he_IL.UTF-8", "HE-il", "he-Hebr-IL"] {
++        assert_eq!(lang_from_tag(tag), Some(he), "{tag}");
++    }
++    assert_eq!(first_supported([UNSUPPORTED, "he-IL", "en-US"]), Some(he));
++    let mut app = crate::WordApp::new(wordcraft_engine::Session::new(wordcraft_doc::Document::new()), Default::default());
++    let before = serde_json::to_value(&app.session.doc).unwrap();
++    let result = app.run("ui.language", serde_json::json!({"value": "HE"})).unwrap();
++    assert_eq!(result["effective"], "he");
++    assert_eq!(app.ui.language, "he");
++    assert!(result["available"].as_array().unwrap().iter().any(|l| l["code"] == "he" && l["name"] == "עברית"));
++    assert_eq!(serde_json::to_value(&app.session.doc).unwrap(), before);
++    let saved = serde_json::to_string(&app.ui).unwrap();
++    let restored: crate::UiState = serde_json::from_str(&saved).unwrap();
++    assert_eq!(Lang::from_pref(&restored.language), he);
++    assert!(he.rtl());
++    assert!(!he.uses_cjk());
++    assert!(Lang::all().filter(|l| l.code() != "he").all(|l| !l.rtl()), "only Hebrew is mirrored");
++}
++
++/// The embedded interface faces have no Hebrew letters: a Hebrew interface borrows an installed
++/// face that has them, as a Hebrew file name in the caption does, instead of drawing boxes.
++#[test]
++fn a_hebrew_interface_borrows_a_face_for_its_letters() {
++    let letter = 'ק';
++    assert!(!crate::theme::interface_char_covered(letter), "Inter has no Hebrew");
++    assert!(crate::theme::interface_char_covered('Ж'), "Inter draws Cyrillic itself");
++    needs_catalogs!();
++    let lookup = |c| wordcraft_fonts::FontDb::global().fallback_for(c, u32::MAX);
++    for other in Lang::all().filter(|l| !l.uses_cjk() && l.code() != "he") {
++        for text in other.catalog_texts() {
++            let faces = crate::theme::faces_for_preedit(text, &[], crate::theme::interface_char_covered, lookup);
++            assert!(faces.is_empty(), "{} is drawn by the embedded faces", other.code());
++        }
++    }
++    if Lang::from_code("he").is_none() {
++        eprintln!("skipped: no Hebrew catalog embedded");
++        return;
++    }
++    let ctx = egui::Context::default();
++    let frame = |app: &mut crate::WordApp| {
++        ctx.run_ui(egui::RawInput::default(), |ui| app.logic(ui.ctx())).drop_without_applying_deltas();
++    };
++    let mut app = crate::WordApp::new(wordcraft_engine::Session::new(wordcraft_doc::Document::new()), Default::default());
++    frame(&mut app);
++    app.run("ui.language", serde_json::json!({"value": "he"})).unwrap();
++    frame(&mut app);
++    if wordcraft_fonts::FontDb::global().fallback_for(letter, u32::MAX).is_some_and(|f| f.data().len() <= 16 << 20) {
++        assert!(app.canvas.ime_faces.iter().any(|f| f.covers(letter)), "the interface borrows a face with Hebrew letters");
++    }
++    let n = app.canvas.ime_faces.len();
++    frame(&mut app);
++    assert_eq!(app.canvas.ime_faces.len(), n, "the face is added once");
++    set_current(Lang::EN);
++}
+diff --git a/crates/ui-egui/src/icons.rs b/crates/ui-egui/src/icons.rs
+index 1360ddd6..7ef94abc 100644
+--- a/crates/ui-egui/src/icons.rs
++++ b/crates/ui-egui/src/icons.rs
+@@ -10,8 +10,53 @@ struct Pen<'a> {
+     c: Color32,
+     a: Color32,
+     w: f32,
++    /// Drawn pre-flipped, so a mirrored interface ([`crate::mirror`]) shows it as designed.
++    keep: bool,
+ }
+ 
++/// Icons whose direction means the same in any interface: text direction, alignment, the page's
++/// own left and right (the document isn't mirrored), media controls, turning clockwise, and Latin
++/// letters read together (`x²`, `ab¹`, `ab-`/`cd`). A mirrored interface keeps them as drawn;
++/// every other icon (undo, increase and decrease indent, bullets, numbering, chevrons) mirrors
++/// with the interface, its letters moving with it. `indentLeft` and `indentRight` mark the
++/// paragraph's left and right indent, the page's own sides, so they keep theirs.
++const KEEP_DIRECTION: &[&str] = &[
++    "subscript",
++    "superscript",
++    "footnote",
++    "endnote",
++    "nextFootnote",
++    "ccRichText",
++    "hyphenation",
++    "replace",
++    "translate",
++    "language",
++    "textLtr",
++    "textRtl",
++    "textDirection",
++    "alignText",
++    "alignLeft",
++    "alignCenter",
++    "alignRight",
++    "justify",
++    "cellAlign",
++    "indentLeft",
++    "indentRight",
++    "insertLeft",
++    "insertRight",
++    "rotate",
++    "replay",
++    "replayRewind",
++    "replayPlay",
++    "replayPause",
++    "replayForward",
++    "mediaPlay",
++    "mediaPause",
++    "mediaStop",
++    "mediaPrev",
++    "mediaNext",
++];
++
+ impl Pen<'_> {
+     fn s(&self) -> f32 {
+         self.r.width().min(self.r.height()) / 20.0
+@@ -19,7 +64,8 @@ impl Pen<'_> {
+     fn pt(&self, x: f32, y: f32) -> Pos2 {
+         let s = self.s();
+         let o = self.r.center() - vec2(10.0 * s, 10.0 * s);
+-        pos2(o.x + x * s, o.y + y * s)
++        let p = pos2(o.x + x * s, o.y + y * s);
++        if self.keep { pos2(self.r.min.x + self.r.max.x - p.x, p.y) } else { p }
+     }
+     fn stroke(&self, c: Color32) -> Stroke {
+         Stroke::new(self.w * self.s(), c)
+@@ -40,10 +86,10 @@ impl Pen<'_> {
+         self.p.add(Shape::convex_polygon(v, c, Stroke::NONE));
+     }
+     fn rect(&self, x0: f32, y0: f32, x1: f32, y1: f32, c: Color32) {
+-        self.p.rect_stroke(Rect::from_min_max(self.pt(x0, y0), self.pt(x1, y1)), 1.0, self.stroke(c), egui::StrokeKind::Middle);
++        self.p.rect_stroke(Rect::from_two_pos(self.pt(x0, y0), self.pt(x1, y1)), 1.0, self.stroke(c), egui::StrokeKind::Middle);
+     }
+     fn frect(&self, x0: f32, y0: f32, x1: f32, y1: f32, c: Color32) {
+-        self.p.rect_filled(Rect::from_min_max(self.pt(x0, y0), self.pt(x1, y1)), 0.5, c);
++        self.p.rect_filled(Rect::from_two_pos(self.pt(x0, y0), self.pt(x1, y1)), 0.5, c);
+     }
+     fn circle(&self, x: f32, y: f32, r: f32, c: Color32) {
+         self.p.circle_stroke(self.pt(x, y), r * self.s(), self.stroke(c));
+@@ -73,7 +119,8 @@ impl Pen<'_> {
+ 
+ /// Paint icon `name` into `r`. `c` is the line colour; the accent comes from the theme.
+ pub fn paint(p: &Painter, r: Rect, name: &str, c: Color32, accent: Color32) {
+-    let pen = Pen { p, r, c, a: accent, w: 1.25 };
++    let keep = KEEP_DIRECTION.contains(&name) && crate::mirror::active(p.ctx());
++    let pen = Pen { p, r, c, a: accent, w: 1.25, keep };
+     if let Some(kind) = name.strip_prefix("shape.")
+         && shape(&pen, kind)
+     {
+@@ -1707,4 +1754,15 @@ mod tests {
+         assert!(has_default_highlight_bar("shading"));
+         assert!(!has_default_highlight_bar("shadingNoBar"));
+     }
++
++    /// Every icon kept the right way round in a mirrored interface is one the set draws (a
++    /// misspelt name would silently mirror).
++    #[test]
++    fn icons_kept_unmirrored_exist() {
++        let source = include_str!("icons.rs");
++        for name in super::KEEP_DIRECTION {
++            let arm = [format!("\"{name}\" =>"), format!("\"{name}\" |"), format!("| \"{name}\"")];
++            assert!(arm.iter().any(|a| source.contains(a.as_str())), "{name} is not an icon");
++        }
++    }
+ }
+diff --git a/crates/ui-egui/src/lib.rs b/crates/ui-egui/src/lib.rs
+index 0e636027..626981d8 100644
+--- a/crates/ui-egui/src/lib.rs
++++ b/crates/ui-egui/src/lib.rs
+@@ -54,6 +54,7 @@ pub mod keys;
+ pub mod keytips;
+ mod local_time;
+ pub mod mini_toolbar;
++pub mod mirror;
+ pub mod objects;
+ pub mod options;
+ pub mod panes;
+@@ -532,6 +533,11 @@ pub struct WordApp {
+     /// The document (id, revision) whose comment text [`WordApp::ensure_comment_fonts`] last
+     /// looked at.
+     comment_fonts_for: Option<(u64, u64)>,
++    /// The interface language whose catalog [`WordApp::ensure_language_fonts`] last checked.
++    fonts_lang: Option<&'static str>,
++    /// The language names (File ▸ Options) are on screen, in their own scripts.
++    pub(crate) want_language_name_fonts: bool,
++    fonts_language_names: bool,
+     /// The Recover list's document names [`WordApp::ensure_recover_fonts`] last looked at.
+     recover_fonts_for: Option<u64>,
+     /// The list of recent document paths [`WordApp::ensure_recent_fonts`] last looked at.
+diff --git a/crates/ui-egui/src/mini_toolbar.rs b/crates/ui-egui/src/mini_toolbar.rs
+index 15f60722..8d1c1d08 100644
+--- a/crates/ui-egui/src/mini_toolbar.rs
++++ b/crates/ui-egui/src/mini_toolbar.rs
+@@ -321,18 +321,7 @@ fn content(app: &mut WordApp, ui: &mut egui::Ui, t: &Tokens) {
+         );
+         sep(ui, t);
+ 
+-        use wordcraft_doc::Align as A;
+-        widgets::small(ui, app, "alignLeft", None, "Align Left", crate::widgets::ButtonAction::new("para.alignLeft", json!({}), align == A::Left));
+-        widgets::small(ui, app, "alignCenter", None, "Center", crate::widgets::ButtonAction::new("para.alignCenter", json!({}), align == A::Center));
+-        widgets::small(
+-            ui,
+-            app,
+-            "alignRight",
+-            None,
+-            "Align Right",
+-            crate::widgets::ButtonAction::new("para.alignRight", json!({}), align == A::Right),
+-        );
+-        widgets::small(ui, app, "justify", None, "Justify", crate::widgets::ButtonAction::new("para.justify", json!({}), align == A::Justify));
++        widgets::align_buttons(ui, app, align);
+     });
+ }
+ 
+diff --git a/crates/ui-egui/src/mirror.rs b/crates/ui-egui/src/mirror.rs
+new file mode 100644
+index 00000000..96e870ec
+--- /dev/null
++++ b/crates/ui-egui/src/mirror.rs
+@@ -0,0 +1,977 @@
++//! Mirrored interface for right-to-left languages (Hebrew). Instead of every panel, menu and dialog
++//! laying itself out twice, the whole window is mirrored as it is painted: an egui plugin flips
++//! each shape of the finished frame about the window's centre, and flips the pointer on the way
++//! in, so a click lands on what is drawn under it. Text moves as a block and keeps its glyphs, so
++//! a label lines up on the right, and the lines of a wrapped label are aligned right. The egui
++//! fork lays right-to-left text out itself (UAX #9, paragraph by paragraph), so labels and catalog
++//! entries stay in logical order. Icons drawn in code flip, as they do in right-to-left Word;
++//! pictures keep their orientation.
++//!
++//! What has its own direction moves without flipping:
++//! - the document: the page canvas with its rulers (a document's paragraphs say which way they
++//!   run);
++//! - the text field being edited: its text, caret and selection move together, mirrored as one
++//!   block inside the field, so the caret stays by the letter it stands at.
++//!
++//! Popups placed from the page (context menu, mini toolbar, tooltips over the page) are mirrored
++//! about the point they open from, so they open leftwards from it, as right-to-left menus do.
++//!
++//! Each window (egui viewport) is mirrored on its own: one runs its pass inside another's, so the
++//! plugin keeps what it learns per viewport.
++
++use std::collections::HashMap;
++use std::sync::Arc;
++
++use egui::epaint::{ClippedShape, Shape};
++use egui::layers::ShapeIdx;
++use egui::{Context, Event, FullOutput, Id, LayerId, Order, Pos2, RawInput, Rect, Ui, Vec2, ViewportId};
++
++/// How the pointer goes from where it is on screen to where the widgets were laid out.
++#[derive(Clone, Copy, Debug, PartialEq)]
++enum Mapping {
++    /// On a popup placed from the page: mirrored about its axis (the sum `x + x'`).
++    Mirrored(f32),
++    /// On the text field being edited (logical): moved back by this much, and kept inside it.
++    Field(f32, Rect),
++    /// Anywhere else in the interface: flipped about the window's centre.
++    Flipped,
++    /// On the page: moved back by this much.
++    Moved(f32),
++}
++
++/// How a popup placed from the page is mirrored.
++#[derive(Clone, Copy, Debug, PartialEq)]
++pub enum Anchor {
++    /// Opened rightwards from a point on the page (its left edge): it opens leftwards from it.
++    Edge,
++    /// Placed over the page (under a field, centred on it): it stays there, mirrored inside.
++    InPlace,
++}
++
++/// The plugin; [`configure`] sets it up each frame, for the window being drawn.
++#[derive(Default)]
++pub struct Mirror {
++    views: HashMap<ViewportId, View>,
++    /// The viewport whose pass is ending: its output comes next.
++    ending: Option<ViewportId>,
++}
++
++/// What the mirror knows of one window.
++#[derive(Default)]
++struct View {
++    on: bool,
++    /// The document canvas (logical coordinates), when it is on screen.
++    canvas: Option<Rect>,
++    /// Popups placed from document coordinates (their area ids), and how each is mirrored.
++    anchored: Vec<(Id, Anchor)>,
++    /// Where those popups were this frame (logical), with the axis they were mirrored about (as
++    /// the sum `x + x'`), for the pointer.
++    anchored_rects: Vec<(Rect, f32)>,
++    /// The other menus, popups and windows on screen (logical): they're flipped with the
++    /// interface, and the pointer over one goes to it even where it's drawn over the page.
++    floating: Vec<Rect>,
++    /// Cards painted in a layer over the page that egui doesn't size by them (floating
++    /// comments): floating too.
++    overlays: Vec<Rect>,
++    /// How many of the frame's shapes are those of menus, popups and windows. They come after
++    /// the page and the panels (egui paints background layers first), and are never the page's
++    /// even where they lie over it: a dialog's text box or check mark there is flipped too.
++    floating_shapes: usize,
++    /// The text field being edited (logical), and how far its contents moved last frame.
++    field: Option<Rect>,
++    field_shift: Option<f32>,
++    /// The window's horizontal extent, from the last frame.
++    span: Option<(f32, f32)>,
++    /// The pointer as last seen on screen: wheel scrolling over the page isn't flipped.
++    pointer: Option<Pos2>,
++    /// The mapping of the button held down, kept until it is released.
++    drag: Option<Mapping>,
++}
++
++impl egui::Plugin for Mirror {
++    fn debug_name(&self) -> &'static str {
++        "wordcraft mirror"
++    }
++
++    fn input_hook(&mut self, _ctx: &Context, input: &mut RawInput) {
++        self.views.entry(input.viewport_id).or_default().input(input);
++    }
++
++    fn on_end_pass(&mut self, ui: &mut Ui) {
++        let ctx = ui.ctx().clone();
++        let id = ctx.viewport_id();
++        self.ending = Some(id);
++        self.views.entry(id).or_default().end_pass(&ctx);
++    }
++
++    fn output_hook(&mut self, _ctx: &Context, output: &mut FullOutput) {
++        let id = self.ending.take().unwrap_or(ViewportId::ROOT);
++        if let Some(view) = self.views.get_mut(&id) {
++            view.output(output);
++        }
++    }
++}
++
++impl View {
++    /// Map the pointer back from where it is on screen to where the widgets were laid out.
++    fn input(&mut self, input: &mut RawInput) {
++        if let Some(r) = input.screen_rect {
++            self.span = Some((r.min.x, r.max.x));
++        }
++        // A release that never came (the window lost focus mid-drag, or the mirror was off) must
++        // not hold the next press to an old mapping.
++        if !self.on || input.events.iter().any(|e| matches!(e, Event::WindowFocused(false))) {
++            self.drag = None;
++        }
++        let Some(span) = self.span.filter(|_| self.on) else { return };
++        // Areas kept unflipped, with how far each moves: the field being edited and the page.
++        let field = self.field.map(|f| (f, self.field_shift.unwrap_or_else(|| keep_shift(span, f))));
++        let canvas = self.canvas.map(|c| (c, keep_shift(span, c)));
++        let shown = |(r, d): (Rect, f32), p: Pos2| r.translate(Vec2::new(d, 0.0)).contains(p);
++        let anchored = &self.anchored_rects;
++        let floating = &self.floating;
++        // Over a menu, popup or window other than the one holding `inside`?
++        let on_floating = |p: Pos2, inside: Option<Rect>| {
++            let q = Pos2::new(flip_x(span, p.x), p.y);
++            floating.iter().any(|r| r.contains(q) && !inside.is_some_and(|i| r.contains_rect(i)))
++        };
++        let mapping_at = |p: Pos2| -> Mapping {
++            if let Some((_, sum)) = anchored.iter().find(|(r, sum)| flip_rect((0.0, *sum), *r).contains(p)) {
++                return Mapping::Mirrored(*sum);
++            }
++            // The field being edited (in a dialog too) is drawn moved, not flipped: so is the pointer,
++            // with the field's contents. Beside its text it stays in the field, past the text's end.
++            if let Some((f, d)) = field.filter(|&(f, _)| shown((f, keep_shift(span, f)), p) && !on_floating(p, Some(f))) {
++                return Mapping::Field(d, f);
++            }
++            if on_floating(p, None) {
++                return Mapping::Flipped;
++            }
++            match canvas.filter(|&k| shown(k, p)) {
++                Some((_, d)) => Mapping::Moved(d),
++                None => Mapping::Flipped,
++            }
++        };
++        let apply = |m: Mapping, p: Pos2| -> Pos2 {
++            match m {
++                Mapping::Mirrored(sum) => Pos2::new(sum - p.x, p.y),
++                Mapping::Field(d, f) => Pos2::new((p.x - d).clamp(f.min.x + 0.5, (f.max.x - 0.5).max(f.min.x + 0.5)), p.y),
++                Mapping::Moved(d) => Pos2::new(p.x - d, p.y),
++                Mapping::Flipped => Pos2::new(flip_x(span, p.x), p.y),
++            }
++        };
++        let over_page = |p: Option<Pos2>| p.is_some_and(|p| !on_floating(p, None) && canvas.is_some_and(|k| shown(k, p)));
++        let flip_wheel = !over_page(self.pointer);
++        for event in &mut input.events {
++            match event {
++                Event::PointerMoved(p) => {
++                    self.pointer = Some(*p);
++                    *p = apply(self.drag.unwrap_or_else(|| mapping_at(*p)), *p);
++                }
++                // A press fixes the mapping until its release, so a drag that leaves what it started
++                // on (a dialog dragged quickly over the page) doesn't jump to another mapping.
++                Event::PointerButton { pos, pressed, .. } => {
++                    let m = self.drag.unwrap_or_else(|| mapping_at(*pos));
++                    self.drag = pressed.then_some(m);
++                    *pos = apply(m, *pos);
++                }
++                Event::Touch { pos, .. } => *pos = apply(mapping_at(*pos), *pos),
++                Event::PointerGone => self.pointer = None,
++                Event::MouseMoved(delta) => delta.x = -delta.x,
++                Event::MouseWheel { delta, .. } if flip_wheel => delta.x = -delta.x,
++                _ => {}
++            }
++        }
++    }
++
++    /// Note what this frame laid out (the field being edited, the menus and popups) and mirror the
++    /// popups placed from the page about the point they open from.
++    fn end_pass(&mut self, ctx: &Context) {
++        let screen = ctx.content_rect();
++        let span = (screen.min.x, screen.max.x);
++        self.span = Some(span);
++        self.anchored_rects.clear();
++        self.floating.clear();
++        self.floating_shapes = 0;
++        let field = editing_field(ctx).filter(|_| self.on);
++        if field != self.field {
++            self.field_shift = None;
++        }
++        self.field = field;
++        if !self.on {
++            return;
++        }
++        let above: Vec<LayerId> = ctx.memory(|m| m.layer_ids().filter(|l| l.order != Order::Background).collect());
++        self.floating_shapes = ctx.graphics(|g| above.iter().filter_map(|l| g.get(*l)).map(|list| list.next_idx().0).sum());
++        // Menus, popups and windows (the page is in the background, in the central panel).
++        let anchored = &self.anchored;
++        let layers: Vec<LayerId> = ctx.memory(|m| {
++            let areas = m.areas();
++            m.layer_ids()
++                .filter(|l| {
++                    matches!(l.order, Order::Middle | Order::Foreground) && areas.is_visible(l) && !anchored.iter().any(|(id, _)| *id == l.id)
++                })
++                .collect()
++        });
++        self.floating =
++            layers.into_iter().filter_map(|l| egui::containers::AreaState::load(ctx, l.id).filter(|s| s.interactable).map(|s| s.rect())).collect();
++        self.floating.extend(self.overlays.iter().copied());
++        let Some(canvas) = self.canvas else { return };
++        // Tooltips follow the pointer: over the page they belong to the page.
++        const ORDERS: [Order; 5] = [Order::Background, Order::Middle, Order::Foreground, Order::Tooltip, Order::Debug];
++        let mut layers: Vec<(LayerId, Anchor)> =
++            self.anchored.iter().flat_map(|&(id, anchor)| ORDERS.map(|o| (LayerId::new(o, id), anchor))).collect();
++        if ctx.pointer_hover_pos().is_some_and(|p| canvas.contains(p)) {
++            layers.extend(ctx.memory(|m| m.layer_ids().filter(|l| l.order == Order::Tooltip).map(|l| (l, Anchor::Edge)).collect::<Vec<_>>()));
++        }
++        // A popup opens rightwards from logical point `a` (its left edge), which is drawn at
++        // `a + d` with the page. Moved here and flipped with everything else, it is mirrored about
++        // that point: `x' = 2a + d - x`, so it opens leftwards from it. One placed over the page
++        // is mirrored about its own centre instead, and stays where it was, moved with the page.
++        let d = keep_shift(span, canvas);
++        let mut placed = Vec::new();
++        for (layer, anchor) in layers {
++            let Some(area) = ctx.memory(|m| m.area_rect(layer.id)).filter(|r| r.is_positive()) else { continue };
++            // Drawn at `sum - x`: kept on screen, as egui keeps it in its own coordinates.
++            let mut sum = match anchor {
++                Anchor::Edge => 2.0 * area.min.x,
++                Anchor::InPlace => area.min.x + area.max.x,
++            } + d;
++            if area.width() <= span.1 - span.0 {
++                sum = sum.clamp(span.0 + area.max.x, span.1 + area.min.x);
++            }
++            let shift = Vec2::new(span.0 + span.1 - sum, 0.0);
++            let found = ctx.graphics_mut(|g| {
++                let Some(list) = g.get_mut(layer) else { return false };
++                for i in 0..list.next_idx().0 {
++                    list.mutate_shape(ShapeIdx(i), |c| {
++                        c.clip_rect = c.clip_rect.translate(shift);
++                        c.shape.translate(shift);
++                    });
++                }
++                true
++            });
++            if found {
++                placed.push((area, sum));
++            }
++        }
++        self.anchored_rects = placed;
++    }
++
++    /// Mirror the finished frame, and the rectangles the platform is told about with it.
++    fn output(&mut self, output: &mut FullOutput) {
++        let Some(span) = self.span.filter(|_| self.on) else { return };
++        let first_floating = output.shapes.len().saturating_sub(self.floating_shapes);
++        self.field_shift = self.field.map(|f| field_shift(span, f, &output.shapes));
++        let field = self.field.zip(self.field_shift);
++        for (i, clipped) in output.shapes.iter_mut().enumerate() {
++            let canvas = self.canvas.filter(|_| i < first_floating);
++            mirror_clipped(span, canvas, field, clipped);
++        }
++        if let Some(ime) = &mut output.platform_output.ime {
++            ime.rect = self.place_ime(span, ime.rect);
++            ime.cursor_rect = self.place_ime(span, ime.cursor_rect);
++        }
++        // Screen readers, magnifiers and their hit testing find each element where it is drawn.
++        if let Some(update) = &mut output.platform_output.accesskit_update {
++            for (_, node) in &mut update.nodes {
++                if let Some(b) = node.bounds() {
++                    let r = self.place(span, Rect::from_min_max(Pos2::new(b.x0 as f32, b.y0 as f32), Pos2::new(b.x1 as f32, b.y1 as f32)));
++                    node.set_bounds(egui::accesskit::Rect { x0: r.min.x.into(), x1: r.max.x.into(), ..b });
++                }
++            }
++        }
++    }
++
++    /// Where the input method's rectangle (`r`, logical) is drawn. It is the field being edited's,
++    /// or else the page caret's, which moves with the page even under a menu or the Focus ribbon
++    /// dropped over it, as the caret itself does.
++    fn place_ime(&self, span: (f32, f32), r: Rect) -> Rect {
++        if self.field.is_none()
++            && let Some(c) = self.canvas.filter(|c| c.expand(1.0).contains_rect(r))
++        {
++            return r.translate(Vec2::new(keep_shift(span, c), 0.0));
++        }
++        self.place(span, r)
++    }
++
++    /// Where an element of the frame (`r`, logical) is drawn, as the pointer finds it: a popup
++    /// placed from the page is mirrored about its axis, the field being edited and the page move,
++    /// menus, popups and dialogs (over the page too) flip with the rest of the interface.
++    fn place(&self, span: (f32, f32), r: Rect) -> Rect {
++        if let Some((_, sum)) = self.anchored_rects.iter().find(|(a, _)| a.expand(1.0).contains_rect(r)) {
++            return flip_rect((0.0, *sum), r);
++        }
++        if let Some(f) = self.field.filter(|f| f.expand(1.0).contains_rect(r)) {
++            // The field itself (its frame) flips in place; what is inside moves with its text.
++            let d = if r.width() >= f.width() - 1.0 { keep_shift(span, f) } else { self.field_shift.unwrap_or_else(|| keep_shift(span, f)) };
++            return r.translate(Vec2::new(d, 0.0));
++        }
++        match self.canvas.filter(|c| c.expand(1.0).contains_rect(r) && !self.floating.iter().any(|f| f.contains(r.center()))) {
++            Some(c) => r.translate(Vec2::new(keep_shift(span, c), 0.0)),
++            None => flip_rect(span, r),
++        }
++    }
++}
++
++/// Whether this frame's window is mirrored: icon letters (`x²`) are placed so the mirror keeps
++/// their order.
++pub fn active(ctx: &Context) -> bool {
++    ctx.plugin_opt::<Mirror>().is_some_and(|h| h.lock().views.get(&ctx.viewport_id()).is_some_and(|v| v.on))
++}
++
++/// Turn the mirror on (a right-to-left interface) or off for the window being drawn. `canvas` is
++/// the document canvas with its rulers when it is on screen, `anchored` the area ids of popups
++/// placed from it, with how each is mirrored, and `overlays` cards painted over it in a layer
++/// egui doesn't size by them (floating comments). Call once per frame, after the interface is
++/// laid out.
++pub fn configure(ctx: &Context, on: bool, canvas: Option<Rect>, anchored: &[(Id, Anchor)], overlays: &[Rect]) {
++    if ctx.plugin_opt::<Mirror>().is_none() {
++        ctx.add_plugin(Mirror::default());
++    }
++    if let Some(handle) = ctx.plugin_opt::<Mirror>() {
++        let mut m = handle.lock();
++        let view = m.views.entry(ctx.viewport_id()).or_default();
++        view.on = on;
++        view.canvas = canvas;
++        view.anchored = anchored.to_vec();
++        view.overlays = overlays.to_vec();
++    }
++}
++
++/// Where the mirror draws `r`, laid out on the page (or the canvas round it) of the window
++/// `viewport`: the control channel's coordinates are the window's as drawn.
++pub fn page_to_window(ctx: &Context, viewport: ViewportId, r: Rect) -> Rect {
++    let Some(handle) = ctx.plugin_opt::<Mirror>() else { return r };
++    let m = handle.lock();
++    match m.views.get(&viewport).map(|v| (v.on, v.span, v.canvas)) {
++        Some((true, Some(span), Some(canvas))) => r.translate(Vec2::new(keep_shift(span, canvas), 0.0)),
++        _ => r,
++    }
++}
++
++/// Where the mirror draws `r`, laid out in the interface of the window `viewport` (a menu, or a
++/// floating comment over the page): flipped with the interface.
++pub fn interface_to_window(ctx: &Context, viewport: ViewportId, r: Rect) -> Rect {
++    let Some(handle) = ctx.plugin_opt::<Mirror>() else { return r };
++    let m = handle.lock();
++    match m.views.get(&viewport).map(|v| (v.on, v.span)) {
++        Some((true, Some(span))) => flip_rect(span, r),
++        _ => r,
++    }
++}
++
++fn flip_x((min, max): (f32, f32), x: f32) -> f32 {
++    min + max - x
++}
++
++fn flip_rect(span: (f32, f32), r: Rect) -> Rect {
++    if !r.is_finite() {
++        return r;
++    }
++    Rect::from_x_y_ranges(flip_x(span, r.max.x)..=flip_x(span, r.min.x), r.y_range())
++}
++
++/// How far an area kept unflipped moves to sit where the mirror puts it.
++fn keep_shift(span: (f32, f32), k: Rect) -> f32 {
++    flip_x(span, k.max.x) - k.min.x
++}
++
++/// The text field being edited, if any: its caret and selection are drawn apart from its text.
++fn editing_field(ctx: &Context) -> Option<Rect> {
++    let id: Id = ctx.memory(|m| m.focused())?;
++    egui::TextEdit::load_state(ctx, id)?;
++    ctx.read_response(id).map(|r| r.rect)
++}
++
++/// Is `clipped` drawn inside the text field `field`: its text, caret or selection? egui clips
++/// those to the field's inside; the field's frame is clipped with the panel around it.
++fn in_field(field: Rect, clipped: &ClippedShape) -> bool {
++    clipped.clip_rect.is_positive() && field.expand(1.0).contains_rect(clipped.clip_rect)
++}
++
++/// How far the contents of the field being edited move: as one block, mirrored about the
++/// window's centre like any label, so text that starts at the field's left margin ends at its
++/// right one, and the caret and selection stay where they are in the text. Text wider than the
++/// field (scrolled) moves with the field instead.
++fn field_shift(span: (f32, f32), field: Rect, shapes: &[ClippedShape]) -> f32 {
++    let mut block = Rect::NOTHING;
++    for clipped in shapes.iter().filter(|c| in_field(field, c)) {
++        block = block.union(content_rect(&clipped.shape));
++    }
++    if !block.is_finite() || block.width() > field.width() {
++        return keep_shift(span, field);
++    }
++    flip_x(span, block.max.x) - block.min.x
++}
++
++/// What a shape inside a text field takes up: a text's laid-out box (its glyphs may overhang),
++/// the caret's line itself (not its stroke), anything else's bounds.
++fn content_rect(shape: &Shape) -> Rect {
++    match shape {
++        Shape::Vec(shapes) => shapes.iter().fold(Rect::NOTHING, |r, s| r.union(content_rect(s))),
++        Shape::Text(t) => t.galley.rect.translate(t.pos.to_vec2()),
++        Shape::LineSegment { points, .. } => Rect::from_two_pos(points[0], points[1]),
++        s => s.visual_bounding_rect(),
++    }
++}
++
++/// Mirror one shape of the finished frame: shapes clipped to the canvas move without flipping,
++/// and so do those inside the field being edited, by the field's own shift (`field`).
++fn mirror_clipped(span: (f32, f32), canvas: Option<Rect>, field: Option<(Rect, f32)>, clipped: &mut ClippedShape) {
++    let d = if let Some(k) = canvas.filter(|c| c.expand(1.0).contains_rect(clipped.clip_rect)) {
++        keep_shift(span, k)
++    } else if let Some((_, d)) = field.filter(|(f, _)| in_field(*f, clipped)) {
++        d
++    } else {
++        clipped.clip_rect = flip_rect(span, clipped.clip_rect);
++        mirror_shape(span, &mut clipped.shape);
++        return;
++    };
++    let d = Vec2::new(d, 0.0);
++    clipped.clip_rect = clipped.clip_rect.translate(d);
++    clipped.shape.translate(d);
++}
++
++fn mirror_shape(span: (f32, f32), shape: &mut Shape) {
++    let fx = |p: &mut Pos2| p.x = flip_x(span, p.x);
++    match shape {
++        Shape::Noop => {}
++        Shape::Vec(shapes) => shapes.iter_mut().for_each(|s| mirror_shape(span, s)),
++        Shape::Circle(c) => fx(&mut c.center),
++        Shape::Ellipse(e) => fx(&mut e.center),
++        Shape::LineSegment { points, .. } => points.iter_mut().for_each(fx),
++        // A check box's tick keeps its direction, as in right-to-left Windows: it only moves.
++        Shape::Path(p) if !p.closed && is_check_mark(&p.points) => {
++            let r = Rect::from_points(&p.points);
++            let d = flip_x(span, r.max.x) - r.min.x;
++            p.points.iter_mut().for_each(|q| q.x += d);
++        }
++        Shape::Path(p) => p.points.iter_mut().for_each(fx),
++        Shape::QuadraticBezier(b) => b.points.iter_mut().for_each(fx),
++        Shape::CubicBezier(b) => b.points.iter_mut().for_each(fx),
++        Shape::Rect(r) => {
++            r.rect = flip_rect(span, r.rect);
++            let c = &mut r.corner_radius;
++            std::mem::swap(&mut c.nw, &mut c.ne);
++            std::mem::swap(&mut c.sw, &mut c.se);
++        }
++        // Text moves as a block and keeps its glyphs (laid out in visual order by the fork);
++        // wrapped lines align right.
++        Shape::Text(t) => {
++            let r = t.galley.rect.translate(t.pos.to_vec2());
++            t.pos.x += flip_x(span, r.max.x) - r.min.x;
++            if t.galley.rows.len() > 1 {
++                let galley = Arc::make_mut(&mut t.galley);
++                let right = galley.rect.max.x;
++                for row in &mut galley.rows {
++                    row.pos.x += right - row.rect().max.x;
++                }
++            }
++        }
++        Shape::Mesh(mesh) => {
++            let m = Arc::make_mut(mesh);
++            if m.texture_id == egui::TextureId::default() {
++                // Drawn in code (icons, arrows): flip.
++                m.vertices.iter_mut().for_each(|v| fx(&mut v.pos));
++            } else {
++                // A picture: move it, keep it the right way round.
++                let r = m.calc_bounds();
++                m.translate(Vec2::new(flip_x(span, r.max.x) - r.min.x, 0.0));
++            }
++        }
++        Shape::Callback(c) => c.rect = flip_rect(span, c.rect),
++        // A band (a chart's filled range) is drawn along its own axis: it moves, unflipped.
++        Shape::Band(b) => {
++            let r = b.visual_bounding_rect();
++            let mut band = Shape::Band(b.clone());
++            band.translate(Vec2::new(flip_x(span, r.max.x) - r.min.x, 0.0));
++            *shape = band;
++        }
++    }
++}
++
++/// egui's check box tick: a line from the middle of a square's left side to the middle of its
++/// bottom, then up to its top right corner.
++fn is_check_mark(p: &[Pos2]) -> bool {
++    let [a, b, c] = p else { return false };
++    let close = |x: f32, y: f32| (x - y).abs() < 0.01;
++    a.x < b.x && b.x < c.x && close(b.x - a.x, c.x - b.x) && c.y < a.y && a.y < b.y && close(a.y, (b.y + c.y) / 2.0) && close(c.x - a.x, b.y - c.y)
++}
++
++#[cfg(test)]
++mod tests {
++    use super::*;
++    use egui::{Color32, Stroke, pos2};
++
++    const SPAN: (f32, f32) = (0.0, 100.0);
++
++    fn view(canvas: Option<Rect>) -> View {
++        View { on: true, canvas, ..Default::default() }
++    }
++
++    #[test]
++    fn shapes_flip_about_the_window_centre() {
++        let rect = Rect::from_min_max(pos2(10.0, 0.0), pos2(30.0, 5.0));
++        let mut filled = ClippedShape::new(Rect::EVERYTHING, Shape::rect_filled(rect, 0.0, Color32::RED));
++        mirror_clipped(SPAN, None, None, &mut filled);
++        assert_eq!(filled.shape.visual_bounding_rect(), Rect::from_min_max(pos2(70.0, 0.0), pos2(90.0, 5.0)));
++        let mut line = Shape::line_segment([pos2(0.0, 1.0), pos2(20.0, 1.0)], Stroke::new(1.0, Color32::RED));
++        mirror_shape(SPAN, &mut line);
++        assert!(matches!(line, Shape::LineSegment { points, .. } if points == [pos2(100.0, 1.0), pos2(80.0, 1.0)]));
++    }
++
++    #[test]
++    fn the_page_and_the_field_being_edited_move_without_flipping() {
++        // The canvas spans 0–60 of a 100-wide window: mirrored it spans 40–100, its contents in
++        // the same order.
++        let canvas = Rect::from_min_max(pos2(0.0, 0.0), pos2(60.0, 50.0));
++        let caret = Rect::from_min_max(pos2(5.0, 0.0), pos2(6.0, 9.0));
++        let mut on_page = ClippedShape::new(canvas, Shape::rect_filled(caret, 0.0, Color32::BLACK));
++        mirror_clipped(SPAN, Some(canvas), None, &mut on_page);
++        assert_eq!(on_page.shape.visual_bounding_rect().min.x, 45.0);
++        assert_eq!(on_page.clip_rect, Rect::from_min_max(pos2(40.0, 0.0), pos2(100.0, 50.0)));
++        // A field at 70–90 mirrors to 10–30. Its text at 72–80 and its caret at 80 (clipped to
++        // the field's inside) move as one block, to 20–28 and 20: the caret stays after the text.
++        let field = Rect::from_min_max(pos2(70.0, 60.0), pos2(90.0, 70.0));
++        let inside = field.shrink(1.0);
++        let text = Rect::from_min_max(pos2(72.0, 61.0), pos2(80.0, 69.0));
++        let mut shapes = vec![
++            ClippedShape::new(inside, Shape::rect_filled(text, 0.0, Color32::BLACK)),
++            ClippedShape::new(inside, Shape::line_segment([pos2(80.0, 61.0), pos2(80.0, 69.0)], Stroke::new(1.0, Color32::BLACK))),
++            // The frame, clipped with the panel round it, flips in place.
++            ClippedShape::new(Rect::EVERYTHING, Shape::rect_filled(field, 0.0, Color32::GRAY)),
++        ];
++        let d = field_shift(SPAN, field, &shapes);
++        assert_eq!(d, -52.0);
++        for s in &mut shapes {
++            mirror_clipped(SPAN, Some(canvas), Some((field, d)), s);
++        }
++        let x = |i: usize| (shapes[i].shape.visual_bounding_rect().min.x, shapes[i].shape.visual_bounding_rect().max.x);
++        assert_eq!(x(0), (20.0, 28.0));
++        assert!(matches!(shapes[1].shape, Shape::LineSegment { points, .. } if points[0].x == 28.0), "the caret after the text");
++        assert_eq!(x(2), (10.0, 30.0));
++        // Text wider than the field (scrolled) moves with the field.
++        let wide = [ClippedShape::new(inside, Shape::rect_filled(Rect::from_min_max(pos2(40.0, 61.0), pos2(89.0, 69.0)), 0.0, Color32::BLACK))];
++        assert_eq!(field_shift(SPAN, field, &wide), keep_shift(SPAN, field));
++    }
++
++    #[test]
++    fn the_pointer_is_flipped_back_to_where_widgets_are_laid_out() {
++        let canvas = Rect::from_min_max(pos2(0.0, 0.0), pos2(60.0, 50.0));
++        let mut m = view(Some(canvas));
++        let mut input = RawInput {
++            screen_rect: Some(Rect::from_min_max(pos2(0.0, 0.0), pos2(100.0, 80.0))),
++            events: vec![
++                Event::PointerMoved(pos2(90.0, 70.0)),
++                Event::MouseWheel {
++                    unit: egui::MouseWheelUnit::Point,
++                    delta: egui::vec2(3.0, 1.0),
++                    modifiers: Default::default(),
++                    phase: egui::TouchPhase::Move,
++                    source: egui::MouseWheelSource::Unknown,
++                },
++                Event::PointerMoved(pos2(45.0, 10.0)),
++            ],
++            ..Default::default()
++        };
++        m.input(&mut input);
++        assert!(matches!(input.events[0], Event::PointerMoved(p) if p == pos2(10.0, 70.0)), "outside the page: flipped");
++        assert!(matches!(input.events[1], Event::MouseWheel { delta, .. } if delta == egui::vec2(-3.0, 1.0)), "sideways scrolling flips");
++        assert!(matches!(input.events[2], Event::PointerMoved(p) if p == pos2(5.0, 10.0)), "on the mirrored page: shifted");
++        // A context menu laid out at 10–30 and mirrored about 130 (`2a + d`) is drawn at 100–120.
++        m.anchored_rects = vec![(Rect::from_min_max(pos2(10.0, 0.0), pos2(30.0, 40.0)), 130.0)];
++        let mut on_menu = RawInput { events: vec![Event::PointerMoved(pos2(112.0, 5.0))], ..Default::default() };
++        m.input(&mut on_menu);
++        assert!(matches!(on_menu.events[0], Event::PointerMoved(p) if p == pos2(18.0, 5.0)), "on a popup from the page: its own axis");
++        // The Font list, laid out at 50–75 and flipped to 25–50, hangs over the page (drawn at
++        // 40–100): the pointer there goes to the list, beside it to the page.
++        m.floating = vec![Rect::from_min_max(pos2(50.0, 0.0), pos2(75.0, 40.0))];
++        let mut list = RawInput { events: vec![Event::PointerMoved(pos2(45.0, 5.0)), Event::PointerMoved(pos2(55.0, 5.0))], ..Default::default() };
++        m.input(&mut list);
++        assert!(matches!(list.events[0], Event::PointerMoved(p) if p == pos2(55.0, 5.0)), "on a menu over the page: flipped");
++        assert!(matches!(list.events[1], Event::PointerMoved(p) if p == pos2(15.0, 5.0)), "beside it, on the page: shifted");
++        m.on = false;
++        let mut plain = RawInput { events: vec![Event::PointerMoved(pos2(90.0, 70.0))], ..Default::default() };
++        m.input(&mut plain);
++        assert!(matches!(plain.events[0], Event::PointerMoved(p) if p == pos2(90.0, 70.0)), "off: untouched");
++    }
++
++    /// A dialog over the page is flipped like the rest of the interface: its shapes (the last of
++    /// the frame) aren't taken for the page's, even where they're clipped inside it.
++    #[test]
++    fn dialogs_over_the_page_are_flipped() {
++        let canvas = Rect::from_min_max(pos2(0.0, 0.0), pos2(60.0, 50.0));
++        let mut m = View { span: Some(SPAN), floating_shapes: 1, ..view(Some(canvas)) };
++        let r = Rect::from_min_max(pos2(10.0, 10.0), pos2(20.0, 20.0));
++        let mut out = egui::FullOutput::default();
++        for _ in 0..2 {
++            out.shapes.push(ClippedShape::new(r, Shape::rect_filled(r, 0.0, Color32::BLACK)));
++        }
++        m.output(&mut out);
++        assert_eq!(out.shapes[0].shape.visual_bounding_rect().min.x, 50.0, "the page's: moved with the page");
++        assert_eq!(out.shapes[1].shape.visual_bounding_rect().min.x, 80.0, "the dialog's: flipped");
++        // Its text box being edited (laid out at 30–50, drawn at 50–70) holds text at 30–40,
++        // drawn mirrored at 60–70: the pointer on a letter goes to that letter.
++        m.field = Some(Rect::from_min_max(pos2(30.0, 0.0), pos2(50.0, 10.0)));
++        m.field_shift = Some(30.0);
++        m.floating = vec![Rect::from_min_max(pos2(25.0, 0.0), pos2(55.0, 40.0))];
++        let mut input = RawInput {
++            events: vec![Event::PointerMoved(pos2(62.0, 5.0)), Event::PointerMoved(pos2(52.0, 5.0)), Event::PointerMoved(pos2(52.0, 20.0))],
++            ..Default::default()
++        };
++        m.input(&mut input);
++        assert!(matches!(input.events[0], Event::PointerMoved(p) if p == pos2(32.0, 5.0)), "on its text: moved with the text");
++        assert!(matches!(input.events[1], Event::PointerMoved(p) if p == pos2(30.5, 5.0)), "in the field, left of its text: at the field's edge");
++        assert!(matches!(input.events[2], Event::PointerMoved(p) if p == pos2(48.0, 20.0)), "elsewhere in the dialog: flipped");
++    }
++
++    /// A dialog dragged quickly: the pointer leaves the dialog for the page between two frames, but
++    /// keeps the mapping it was pressed with until the button is released, so the dialog doesn't
++    /// jump to its mirrored place.
++    #[test]
++    fn a_drag_keeps_the_mapping_it_started_with() {
++        let canvas = Rect::from_min_max(pos2(0.0, 0.0), pos2(60.0, 50.0));
++        // A dialog laid out at 50–75 is drawn at 25–50, over the page (drawn at 40–100).
++        let mut m = View { floating: vec![Rect::from_min_max(pos2(50.0, 0.0), pos2(75.0, 40.0))], ..view(Some(canvas)) };
++        let button = |pos, pressed| Event::PointerButton { pos, button: egui::PointerButton::Primary, pressed, modifiers: Default::default() };
++        let mut input = RawInput {
++            screen_rect: Some(Rect::from_min_max(pos2(0.0, 0.0), pos2(100.0, 80.0))),
++            events: vec![
++                button(pos2(30.0, 5.0), true),
++                Event::PointerMoved(pos2(70.0, 5.0)),
++                button(pos2(70.0, 5.0), false),
++                Event::PointerMoved(pos2(80.0, 6.0)),
++            ],
++            ..Default::default()
++        };
++        m.input(&mut input);
++        assert!(matches!(input.events[0], Event::PointerButton { pos, .. } if pos == pos2(70.0, 5.0)), "pressed on the dialog: flipped");
++        assert!(matches!(input.events[1], Event::PointerMoved(p) if p == pos2(30.0, 5.0)), "dragged over the page: still flipped");
++        assert!(matches!(input.events[2], Event::PointerButton { pos, .. } if pos == pos2(30.0, 5.0)), "released: flipped");
++        assert!(
++            matches!(input.events[3], Event::PointerMoved(p) if p == pos2(40.0, 6.0)),
++            "after the release, the page's mapping (moved, not flipped to 20)"
++        );
++    }
++
++    /// A drag whose release never comes (the window lost focus, or the mirror was turned off)
++    /// doesn't hold the next press to its mapping.
++    #[test]
++    fn a_drag_cut_short_lets_go_of_its_mapping() {
++        let canvas = Rect::from_min_max(pos2(0.0, 0.0), pos2(60.0, 50.0));
++        let button = |pos, pressed| Event::PointerButton { pos, button: egui::PointerButton::Primary, pressed, modifiers: Default::default() };
++        let frame = |m: &mut View, events| {
++            let mut input = RawInput { screen_rect: Some(Rect::from_min_max(pos2(0.0, 0.0), pos2(100.0, 80.0))), events, ..Default::default() };
++            m.input(&mut input);
++            input.events
++        };
++        // Pressed on a dialog (flipped), then focus lost before the release.
++        for cut in [vec![Event::WindowFocused(false)], vec![]] {
++            let mut m = View { floating: vec![Rect::from_min_max(pos2(50.0, 0.0), pos2(75.0, 40.0))], ..view(Some(canvas)) };
++            frame(&mut m, vec![button(pos2(30.0, 5.0), true)]);
++            assert!(m.drag.is_some());
++            if cut.is_empty() {
++                m.on = false;
++                frame(&mut m, vec![]);
++                m.on = true;
++            } else {
++                frame(&mut m, cut);
++            }
++            let events = frame(&mut m, vec![button(pos2(90.0, 5.0), true)]);
++            assert!(matches!(events[0], Event::PointerButton { pos, .. } if pos == pos2(50.0, 5.0)), "a press on the page: moved, not flipped to 10");
++        }
++    }
++
++    /// A red popup 150 wide placed from the page at `x`, in a mirrored 400-wide window whose page
++    /// is laid out at 0–300 and drawn at 100–400: where it is drawn, and the axis clicks map through.
++    fn popup_from_the_page(anchor: Anchor, x: f32) -> (Rect, Option<f32>) {
++        let ctx = Context::default();
++        let popup = egui::Id::unique("popup from the page");
++        configure(&ctx, true, Some(Rect::from_min_max(pos2(0.0, 0.0), pos2(300.0, 300.0))), &[(popup, anchor)], &[]);
++        let screen = RawInput { screen_rect: Some(Rect::from_min_size(Pos2::ZERO, egui::vec2(400.0, 300.0))), ..Default::default() };
++        let mut drawn = None;
++        for _ in 0..3 {
++            let mut out = ctx.run_ui(screen.clone(), |ui| {
++                egui::Area::new(popup).fixed_pos(pos2(x, 20.0)).show(ui.ctx(), |ui| {
++                    let (r, _) = ui.allocate_exact_size(egui::vec2(150.0, 40.0), egui::Sense::hover());
++                    ui.painter().rect_filled(r, 0.0, Color32::RED);
++                });
++            });
++            out.textures_delta.clear();
++            drawn = out.shapes.iter().find_map(|c| match &c.shape {
++                // Red, faded in or not.
++                Shape::Rect(r) if r.fill.r() > 0 && r.fill.g() == 0 && r.fill.b() == 0 => Some(r.rect),
++                _ => None,
++            });
++        }
++        let handle = ctx.plugin_opt::<Mirror>().expect("the mirror is on");
++        let axis = handle.lock().views[&ViewportId::ROOT].anchored_rects.first().map(|a| a.1);
++        (drawn.expect("the popup is painted"), axis)
++    }
++
++    /// A floating comment is painted in a layer over the page that egui doesn't size by its cards
++    /// (they're painted, not allocated). Told of the card, the mirror flips the pointer over it
++    /// with the interface, as the card is drawn, so a click on the card as drawn reaches it.
++    #[test]
++    fn a_click_on_a_floating_comment_reaches_it() {
++        let ctx = Context::default();
++        // The page is laid out at 0–300 and drawn at 100–400; the card at 200–250 is drawn
++        // flipped, at 150–200, where it's clicked.
++        let card = Rect::from_min_max(pos2(200.0, 50.0), pos2(250.0, 80.0));
++        let at = pos2(175.0, 65.0);
++        let press = |pressed| Event::PointerButton { pos: at, button: egui::PointerButton::Primary, pressed, modifiers: Default::default() };
++        let mut clicked = false;
++        for events in [vec![], vec![], vec![Event::PointerMoved(at), press(true)], vec![press(false)]] {
++            configure(&ctx, true, Some(Rect::from_min_max(pos2(0.0, 0.0), pos2(300.0, 300.0))), &[], &[card]);
++            let input = RawInput { screen_rect: Some(Rect::from_min_size(Pos2::ZERO, egui::vec2(400.0, 300.0))), events, ..Default::default() };
++            let mut out = ctx.run_ui(input, |ui| {
++                egui::Area::new(egui::Id::unique("floating comment"))
++                    .order(Order::Foreground)
++                    .fixed_pos(Pos2::ZERO)
++                    .sense(egui::Sense::hover())
++                    .show(ui.ctx(), |ui| {
++                        ui.painter().rect_filled(card, 0.0, Color32::RED);
++                        clicked |= ui.interact(card, egui::Id::unique("card"), egui::Sense::click()).clicked();
++                    });
++            });
++            out.textures_delta.clear();
++        }
++        assert!(clicked, "the click on the card as drawn reaches it");
++    }
++
++    /// Run `ui` over `events` in a mirrored 400 × 300 window with no page, one frame per entry.
++    fn mirrored_frames(ctx: &Context, frames: Vec<Vec<Event>>, ui: impl Fn(&mut Ui)) {
++        for events in frames {
++            configure(ctx, true, None, &[], &[]);
++            let input = RawInput { screen_rect: Some(Rect::from_min_size(Pos2::ZERO, egui::vec2(400.0, 300.0))), events, ..Default::default() };
++            // A frame a sixtieth of a second after the last, as a window draws them.
++            let input = RawInput { time: Some(ctx.input(|i| i.time) + 1.0 / 60.0), ..input };
++            let mut out = ctx.run_ui(input, &ui);
++            out.textures_delta.clear();
++        }
++    }
++
++    /// A drag from `at` to `to`, one event a frame, after two frames that lay the widgets out: the
++    /// pointer comes over `at`, presses, moves halfway and the rest, and lets go.
++    fn drag_frames(at: Pos2, to: Pos2) -> Vec<Vec<Event>> {
++        let button = |pos, pressed| Event::PointerButton { pos, button: egui::PointerButton::Primary, pressed, modifiers: Default::default() };
++        let mid = at.lerp(to, 0.5);
++        vec![
++            vec![],
++            vec![],
++            vec![Event::PointerMoved(at)],
++            vec![button(at, true)],
++            vec![Event::PointerMoved(mid)],
++            vec![Event::PointerMoved(to)],
++            vec![button(to, false)],
++        ]
++    }
++
++    /// The interface's scroll bars flip with it, to the left of what they scroll, and a drag on
++    /// one where it is drawn scrolls: the pointer flips back onto the bar.
++    #[test]
++    fn a_scroll_bar_drawn_at_the_left_scrolls_when_dragged() {
++        use egui::accesskit::Role;
++        use egui_kittest::kittest::Queryable;
++        let offset = std::cell::Cell::new(0.0);
++        let mut h = egui_kittest::Harness::builder().with_size(egui::vec2(400.0, 300.0)).with_step_dt(1.0 / 60.0).build_ui(|ui| {
++            configure(ui.ctx(), true, None, &[], &[]);
++            let out = egui::ScrollArea::vertical().scroll_bar_visibility(egui::scroll_area::ScrollBarVisibility::AlwaysVisible).show(ui, |ui| {
++                ui.allocate_exact_size(egui::vec2(300.0, 3000.0), egui::Sense::hover());
++            });
++            offset.set(out.state.clamped_offset().y);
++        });
++        h.ctx.all_styles_mut(|s| s.spacing.scroll = egui::style::ScrollStyle::solid());
++        for _ in 0..4 {
++            h.step();
++        }
++        // Where it is drawn: the mirror reports the accessibility bounds as drawn.
++        let bar = h.query_all_by_role(Role::ScrollBar).map(|n| n.rect()).find(|r| r.height() > r.width()).expect("the vertical scroll bar");
++        // The 300-point content is drawn against the window's right edge, at 100–400.
++        assert!(bar.max.x <= 100.0, "the bar is drawn left of the content: {bar:?}");
++        let button = |pos, pressed| Event::PointerButton { pos, button: egui::PointerButton::Primary, pressed, modifiers: Default::default() };
++        let from = pos2(bar.center().x, bar.top() + 8.0);
++        h.event(Event::PointerMoved(from));
++        h.step();
++        h.event(button(from, true));
++        h.step();
++        for k in 1..=6 {
++            h.event(Event::PointerMoved(from + egui::vec2(0.0, 100.0) * (k as f32 / 6.0)));
++            h.step();
++        }
++        h.event(button(from + egui::vec2(0.0, 100.0), false));
++        h.step();
++        drop(h);
++        assert!(offset.get() > 100.0, "dragging the bar down scrolls down: {}", offset.get());
++    }
++
++    /// A number dragged sideways grows in the reading direction: leftwards in a mirrored
++    /// interface, so dragging it right lowers it.
++    #[test]
++    fn a_number_dragged_right_in_the_mirrored_interface_goes_down() {
++        let ctx = Context::default();
++        let (value, field) = (std::cell::Cell::new(50.0_f64), std::cell::Cell::new(Rect::NOTHING));
++        let show = |ui: &mut Ui| {
++            let mut v = value.get();
++            field.set(ui.add(egui::DragValue::new(&mut v).speed(1.0)).rect);
++            value.set(v);
++        };
++        mirrored_frames(&ctx, vec![vec![]], show);
++        let at = pos2(400.0 - field.get().center().x, field.get().center().y);
++        mirrored_frames(&ctx, drag_frames(at, at + egui::vec2(30.0, 0.0)), show);
++        assert!(value.get() < 50.0, "dragged right, the number goes down: {}", value.get());
++    }
++
++    /// A popup opened from the page near the window's left edge opens leftwards in a mirrored
++    /// interface: it is kept on screen, as egui keeps it in its own coordinates.
++    #[test]
++    fn popups_from_the_page_stay_on_screen() {
++        let (r, axis) = popup_from_the_page(Anchor::Edge, 10.0);
++        assert!((r.min.x - 0.0).abs() < 0.5 && (r.max.x - 150.0).abs() < 0.5, "kept at the left edge, not at -40: {r:?}");
++        assert_eq!(axis, Some(160.0), "clicks map through the same axis");
++    }
++
++    /// A popup placed over the page (a content control's list, under its field) moves with the
++    /// page and stays over the same spot, instead of opening leftwards from its left edge.
++    #[test]
++    fn popups_placed_over_the_page_move_with_it() {
++        let (r, axis) = popup_from_the_page(Anchor::InPlace, 120.0);
++        assert!((r.min.x - 220.0).abs() < 0.5 && (r.max.x - 370.0).abs() < 0.5, "at 120–270 moved by 100, not 70–220: {r:?}");
++        assert_eq!(axis, Some(490.0), "clicks map through its centre");
++    }
++
++    /// Hebrew typed into a field, laid out right to left by egui: in a mirrored interface the
++    /// text sits against the field's right edge and the caret after the last letter typed, at the
++    /// text's left end, with the letters in reading order (the first at the right).
++    #[test]
++    fn a_field_being_edited_lines_up_right_with_the_caret_after_the_last_letter() {
++        let ctx = Context::default();
++        let Some(face) = crate::theme::interface_fallback('ק') else {
++            eprintln!("no installed font has Hebrew letters: skipped");
++            return;
++        };
++        let mut fonts = egui::FontDefinitions::default();
++        fonts.font_data.insert("hebrew".into(), Arc::new(egui::FontData::from_owned(face.data().to_vec())));
++        fonts.families.entry(egui::FontFamily::Proportional).or_default().push("hebrew".into());
++        ctx.set_fonts(fonts);
++        configure(&ctx, true, None, &[], &[]);
++        let id = egui::Id::unique("hebrew field");
++        let mut text = String::from("אני רק בודק");
++        let screen = RawInput { screen_rect: Some(Rect::from_min_size(Pos2::ZERO, egui::vec2(600.0, 300.0))), ..Default::default() };
++        let mut placed = None;
++        let mut frame = |ctx: &Context, text: &mut String| {
++            let mut out = ctx.run_ui(screen.clone(), |ui| {
++                configure(ui.ctx(), true, None, &[], &[]);
++                let out = egui::TextEdit::singleline(text).id(id).desired_width(300.0).show(ui);
++                out.response.request_focus();
++                placed = Some((out.response.rect, out.text_clip_rect));
++            });
++            out.textures_delta.clear();
++            out
++        };
++        frame(&ctx, &mut text);
++        let mut state = egui::text_edit::TextEditState::load(&ctx, id).unwrap_or_default();
++        let end = egui::text::CCursor::new(text.chars().count());
++        state.cursor.set_char_range(Some(egui::text::CCursorRange::one(end)));
++        state.store(&ctx, id);
++        frame(&ctx, &mut text);
++        let out = frame(&ctx, &mut text);
++        let (field, inside) = placed.expect("the field was shown");
++        // The text's left margin in the field, mirrored: its right margin.
++        let margin = inside.min.x - field.min.x;
++        let mirrored_field = flip_rect((0.0, 600.0), field);
++        let mut letters = (f32::MAX, f32::MIN);
++        let mut first_letter = None;
++        let mut caret = None;
++        let mut walk: Vec<Shape> = out.shapes.iter().map(|c| c.shape.clone()).collect();
++        while let Some(shape) = walk.pop() {
++            match shape {
++                Shape::Vec(v) => walk.extend(v),
++                Shape::Text(t) if t.galley.job.text.contains('ק') => {
++                    for placed in &t.galley.rows {
++                        for g in &placed.row.glyphs {
++                            let x = t.pos.x + placed.pos.x + g.pos.x;
++                            letters = (letters.0.min(x), letters.1.max(x + g.advance_width));
++                            if g.chr == 'א' {
++                                first_letter = Some(x);
++                            }
++                        }
++                    }
++                }
++                Shape::LineSegment { points, .. } if (points[0].x - points[1].x).abs() < 0.01 => caret = Some(points[0].x),
++                _ => {}
++            }
++        }
++        let caret = caret.expect("the caret is painted");
++        assert!((letters.1 - (mirrored_field.max.x - margin)).abs() < 2.0, "lined up on the right: {letters:?}, field {mirrored_field:?}");
++        assert!((caret - letters.0).abs() < 2.0, "caret {caret} after the last letter, at the left end {}", letters.0);
++        assert!(first_letter.is_some_and(|x| x > (letters.0 + letters.1) / 2.0), "the first letter at the right");
++    }
++
++    /// Screen readers and the control channel find things where they are drawn: on the page they
++    /// move with it, a dialog over the page flips with the interface, a popup placed from the page
++    /// is mirrored about its axis, and the rest of the interface flips.
++    #[test]
++    fn accessibility_bounds_and_control_coordinates_follow_the_mirror() {
++        let canvas = Rect::from_min_max(pos2(0.0, 0.0), pos2(60.0, 50.0));
++        let m = View {
++            span: Some(SPAN),
++            floating: vec![Rect::from_min_max(pos2(50.0, 0.0), pos2(75.0, 40.0))],
++            anchored_rects: vec![(Rect::from_min_max(pos2(10.0, 30.0), pos2(20.0, 45.0)), 70.0)],
++            ..view(Some(canvas))
++        };
++        let r = |x0: f32, x1: f32, y: f32| Rect::from_min_max(pos2(x0, y), pos2(x1, y + 4.0));
++        assert_eq!(m.place(SPAN, r(5.0, 9.0, 5.0)), r(45.0, 49.0, 5.0), "on the page (drawn at 40–100): moved");
++        assert_eq!(m.place(SPAN, r(52.0, 56.0, 5.0)), r(44.0, 48.0, 5.0), "a dialog over the page: flipped");
++        assert_eq!(m.place(SPAN, r(12.0, 14.0, 32.0)), r(56.0, 58.0, 32.0), "a popup from the page: about its axis");
++        assert_eq!(m.place(SPAN, r(80.0, 90.0, 5.0)), r(10.0, 20.0, 5.0), "the interface: flipped");
++        // The page's caret under a menu over the page (the Focus ribbon) moves with the page.
++        assert_eq!(m.place_ime(SPAN, r(52.0, 53.0, 5.0)), r(92.0, 93.0, 5.0), "the input method at the page's caret");
++        let editing = View { span: Some(SPAN), field: Some(r(50.0, 70.0, 4.0).expand(2.0)), field_shift: Some(-30.0), ..view(Some(canvas)) };
++        assert_eq!(editing.place_ime(SPAN, r(52.0, 53.0, 5.0)), r(22.0, 23.0, 5.0), "a field being edited: with its text");
++        let ctx = Context::default();
++        let second = ViewportId::from_hash_of("second window");
++        ctx.add_plugin(Mirror { views: HashMap::from([(second, m)]), ending: None });
++        assert_eq!(page_to_window(&ctx, second, r(5.0, 9.0, 5.0)), r(45.0, 49.0, 5.0), "ui.inspect's page rectangles, as drawn");
++        assert_eq!(page_to_window(&ctx, ViewportId::ROOT, r(5.0, 9.0, 5.0)), r(5.0, 9.0, 5.0), "another window isn't mirrored");
++        assert_eq!(interface_to_window(&ctx, second, r(52.0, 56.0, 5.0)), r(44.0, 48.0, 5.0), "a floating comment: flipped");
++        assert_eq!(interface_to_window(&ctx, ViewportId::ROOT, r(52.0, 56.0, 5.0)), r(52.0, 56.0, 5.0), "another window isn't mirrored");
++    }
++
++    /// Each window is mirrored on its own: what one window's pass learns (its size, its page)
++    /// doesn't move another's pointer, even when one window's pass runs inside another's.
++    #[test]
++    fn each_window_is_mirrored_on_its_own() {
++        let mut m = Mirror::default();
++        let second = ViewportId::from_hash_of("second window");
++        m.views.insert(ViewportId::ROOT, view(None));
++        m.views.insert(second, View { canvas: Some(Rect::from_min_max(pos2(0.0, 0.0), pos2(60.0, 50.0))), ..view(None) });
++        let ctx = Context::default();
++        let moved = |viewport_id, width: f32| RawInput {
++            viewport_id,
++            screen_rect: Some(Rect::from_min_max(pos2(0.0, 0.0), pos2(width, 80.0))),
++            events: vec![Event::PointerMoved(pos2(45.0, 10.0))],
++            ..Default::default()
++        };
++        let mut root = moved(ViewportId::ROOT, 200.0);
++        egui::Plugin::input_hook(&mut m, &ctx, &mut root);
++        let mut inner = moved(second, 100.0);
++        egui::Plugin::input_hook(&mut m, &ctx, &mut inner);
++        assert!(matches!(root.events[0], Event::PointerMoved(p) if p == pos2(155.0, 10.0)), "the root window flips about its own centre");
++        assert!(matches!(inner.events[0], Event::PointerMoved(p) if p == pos2(5.0, 10.0)), "the other window, on its page: shifted");
++        assert_eq!(m.views[&ViewportId::ROOT].span, Some((0.0, 200.0)));
++    }
++
++    /// A check box's tick only moves: flipped, it would point the wrong way.
++    #[test]
++    fn check_marks_keep_their_direction() {
++        let tick = vec![pos2(10.0, 15.0), pos2(15.0, 20.0), pos2(20.0, 10.0)];
++        let mut s = Shape::line(tick, Stroke::new(1.0, Color32::BLACK));
++        mirror_shape(SPAN, &mut s);
++        assert!(matches!(&s, Shape::Path(p) if p.points == vec![pos2(80.0, 15.0), pos2(85.0, 20.0), pos2(90.0, 10.0)]));
++        let mut chevron = Shape::line(vec![pos2(10.0, 10.0), pos2(15.0, 15.0), pos2(10.0, 20.0)], Stroke::new(1.0, Color32::BLACK));
++        mirror_shape(SPAN, &mut chevron);
++        assert!(matches!(&chevron, Shape::Path(p) if p.points[1] == pos2(85.0, 15.0) && p.points[0] == pos2(90.0, 10.0)), "other lines flip");
++    }
++}
+diff --git a/crates/ui-egui/src/options.rs b/crates/ui-egui/src/options.rs
+index 83f9d77d..fcdad1ea 100644
+--- a/crates/ui-egui/src/options.rs
++++ b/crates/ui-egui/src/options.rs
+@@ -726,6 +726,7 @@ fn language_picker(app: &mut WordApp, ui: &mut Ui) {
+     use crate::i18n::{AUTO, Lang};
+     // The language names are in their own scripts: fonts for them load from the next frame.
+     app.want_system_cjk = true;
++    app.want_language_name_fonts = true;
+     let system = crate::i18n::system_lang();
+     let auto_label = crate::i18n::fmt(tl!("Automatic ({language})"), &[("language", system.name())]);
+     let current = if app.ui.language == AUTO { auto_label.clone() } else { Lang::from_pref(&app.ui.language).name().to_string() };
+diff --git a/crates/ui-egui/src/previews.rs b/crates/ui-egui/src/previews.rs
+index 091c2654..2f2c3356 100644
+--- a/crates/ui-egui/src/previews.rs
++++ b/crates/ui-egui/src/previews.rs
+@@ -211,13 +211,20 @@ impl Previews {
+     }
+ 
+     /// Fonts were added or removed: list the families again and redraw the entries of
+-    /// `families` (an entry drawn before its font was added shows the fallback face).
++    /// `families` (an entry drawn before its font was added shows the fallback face), with
++    /// every language's sample: one drawn in another interface language comes back with it.
+     pub fn fonts_changed(&mut self, ctx: &egui::Context, families: impl Iterator<Item = String>) {
+         self.families = None;
+         self.east_asian = None;
++        let mut samples: Vec<Option<&str>> = crate::i18n::Lang::all().map(|l| l.font_sample()).collect();
++        samples.push(None);
++        samples.sort_unstable();
++        samples.dedup();
+         ctx.data_mut(|d| {
+             for f in families {
+-                d.remove::<TextureHandle>(egui::Id::unique(format!("font:{f}")));
++                for &sample in &samples {
++                    d.remove::<TextureHandle>(egui::Id::unique(entry_key(&f, sample)));
++                }
+             }
+         });
+     }
+@@ -225,7 +232,8 @@ impl Previews {
+     /// A closure drawing a font-menu entry in its own face.
+     pub fn font_preview_fn(&mut self) -> Box<dyn Fn(&mut Ui, &str) -> Response> {
+         Box::new(|ui: &mut Ui, name: &str| {
+-            let key = format!("font:{name}");
++            let lang = crate::i18n::current();
++            let key = entry_key(name, lang.font_sample());
+             let tex: Option<TextureHandle> = ui.ctx().data(|d| d.get_temp::<TextureHandle>(egui::Id::unique(&key)));
+             let (r, resp) = ui.allocate_exact_size(vec2(260.0, crate::widgets::COMBO_PREVIEW_ROW_H), Sense::click());
+             resp.widget_info(|| egui::WidgetInfo::labeled(egui::Role::Button, ui.is_enabled(), name));
+@@ -249,7 +257,7 @@ impl Previews {
+                     return None;
+                 }
+                 let ppp = ui.ctx().pixels_per_point();
+-                let mut img = font_entry_image(name, ppp);
++                let mut img = font_entry_image(name, lang.font_sample(), ppp);
+                 ink_mask(&mut img);
+                 let h = ui.ctx().load_texture(&key, img, egui::TextureOptions::LINEAR);
+                 ui.ctx().data_mut(|d| d.insert_temp(egui::Id::unique(&key), h.clone()));
+@@ -403,14 +411,52 @@ pub fn ink_mask(img: &mut egui::ColorImage) {
+ /// and dropped (#848): browsing the list used to load every family shown for good, so each trip
+ /// through the Font box grew memory by tens of megabytes. A name the font has no glyphs for (a
+ /// symbol font's), or a font that can't be read, shows in the default face.
+-pub fn font_entry_image(name: &str, ppp: f32) -> egui::ColorImage {
++///
++/// A font that has the `sample` letters (the interface's script, [`crate::i18n::Lang::font_sample`])
++/// also shows them in its face at the far end of the entry, as Word does, so a Hebrew font looks
++/// like Hebrew and not only like its Latin name: the name at the left, the sample at the right,
++/// in the mirrored interface too.
++pub fn font_entry_image(name: &str, sample: Option<&str>, ppp: f32) -> egui::ColorImage {
++    const W: f32 = 244.0;
++    const SIZE: f32 = 13.0;
+     let db = wordcraft_fonts::FontDb::global();
+-    let face = db
+-        .preview_face(name)
+-        .filter(|f| name.chars().filter(|c| !c.is_whitespace()).all(|c| f.covers(c)))
+-        .unwrap_or_else(|| db.face(wordcraft_fonts::FALLBACK_FAMILY, "Regular"));
+-    let img = wordcraft_render::render_text_line(&face, name, 13.0, 244.0, 22.0, 2.0, ppp);
+-    egui::ColorImage::from_rgba_unmultiplied([img.width as usize, img.height as usize], &img.to_straight())
++    let covers = |f: &wordcraft_fonts::FontFace, s: &str| s.chars().filter(|c| !c.is_whitespace()).all(|c| f.covers(c));
++    let own = db.preview_face(name);
++    let name_face = own.clone().filter(|f| covers(f, name)).unwrap_or_else(|| db.face(wordcraft_fonts::FALLBACK_FAMILY, "Regular"));
++    let line = |face: &wordcraft_fonts::FontFace, text: &str, w: f32| {
++        let img = wordcraft_render::render_text_line(face, text, SIZE, w, 22.0, 2.0, ppp);
++        egui::ColorImage::from_rgba_unmultiplied([img.width as usize, img.height as usize], &img.to_straight())
++    };
++    let Some((sample, face)) = sample.zip(own).filter(|(s, f)| covers(f, s)) else {
++        return line(&name_face, name, W);
++    };
++    let sample_w = wordcraft_render::text_line_width(&face, sample, SIZE) + 4.0;
++    let name_room = (W - sample_w - 12.0).max(1.0);
++    let name_w = (wordcraft_render::text_line_width(&name_face, name, SIZE) + 4.0).min(name_room);
++    let mut img = line(&name_face, "", W);
++    blit(&mut img, &line(&name_face, name, name_w), 0.0, ppp);
++    blit(&mut img, &line(&face, sample, sample_w), W - sample_w, ppp);
++    img
++}
++
++/// The texture id of a font list entry drawn with `sample` ([`font_entry_image`]).
++fn entry_key(name: &str, sample: Option<&str>) -> String {
++    match sample {
++        Some(s) => format!("font:{name}\u{1f}{s}"),
++        None => format!("font:{name}"),
++    }
++}
++
++/// Copy `src` into `dst` `x` points from the left, clipped to `dst`.
++fn blit(dst: &mut egui::ColorImage, src: &egui::ColorImage, x: f32, ppp: f32) {
++    let x0 = (x * ppp).round().max(0.0) as usize;
++    let [dw, dh] = dst.size;
++    let [sw, sh] = src.size;
++    for y in 0..sh.min(dh) {
++        for sx in 0..sw.min(dw.saturating_sub(x0)) {
++            dst.pixels[y * dw + x0 + sx] = src.pixels[y * sw + sx];
++        }
++    }
+ }
+ 
+ /// Lay out `para` (with `base`'s styles) in a `w`×`h` pt box and rasterise it.
+diff --git a/crates/ui-egui/src/previews/tests.rs b/crates/ui-egui/src/previews/tests.rs
+index a21490e8..c78215a5 100644
+--- a/crates/ui-egui/src/previews/tests.rs
++++ b/crates/ui-egui/src/previews/tests.rs
+@@ -6,8 +6,8 @@ use super::*;
+ fn font_menu_entries_leave_installed_families_unloaded() {
+     let db = wordcraft_fonts::FontDb::global();
+     let ink = |img: &egui::ColorImage| img.pixels.iter().filter(|p| p.r() < 128).count();
+-    assert!(ink(&font_entry_image("Source Sans 3", 1.0)) > 20, "the bundled face draws");
+-    assert!(ink(&font_entry_image("No Such Font 848", 1.0)) > 20, "an unknown font shows in the default face");
++    assert!(ink(&font_entry_image("Source Sans 3", None, 1.0)) > 20, "the bundled face draws");
++    assert!(ink(&font_entry_image("No Such Font 848", None, 1.0)) > 20, "an unknown font shows in the default face");
+     // Tests running alongside share this database and may load a fallback (a math font for
+     // an equation, a font for a script) at any time: leave the math fonts out, and allow a
+     // stray load or two. Before #848 every family previewed was loaded.
+@@ -15,7 +15,7 @@ fn font_menu_entries_leave_installed_families_unloaded() {
+     let unloaded: Vec<String> = db.families().into_iter().filter(|f| !db.is_loaded(f) && !shared(f)).take(25).collect();
+     let mut loaded = Vec::new();
+     for f in &unloaded {
+-        let img = font_entry_image(f, 1.0);
++        let img = font_entry_image(f, None, 1.0);
+         assert_eq!(img.size, [244, 22]);
+         if db.is_loaded(f) {
+             loaded.push(f.clone());
+@@ -24,6 +24,33 @@ fn font_menu_entries_leave_installed_families_unloaded() {
+     assert!(loaded.len() <= 2, "previewing loaded {loaded:?}");
+ }
+ 
++/// In the Hebrew interface a font with Hebrew letters shows a Hebrew sample beside its name,
++/// as Word does: the name at the left, the sample at the right. A font without them, or no
++/// sample, keeps the plain entry.
++#[test]
++fn font_entries_show_a_hebrew_sample_for_hebrew_fonts() {
++    let sample = crate::i18n::fixture_lang("he", "\tFile\tקובץ\n").font_sample();
++    assert!(sample.is_some());
++    let db = wordcraft_fonts::FontDb::global();
++    let hebrew = |f: &str| db.preview_face(f).is_some_and(|x| ['א', 'ש', 'A', 'a'].iter().all(|&c| x.covers(c)));
++    let Some(fam) = ["Arial", "Noto Sans Hebrew", "DejaVu Sans", "Heebo"].into_iter().find(|f| hebrew(f)) else {
++        eprintln!("no Hebrew font installed: skipped");
++        return;
++    };
++    // Ink in columns [a, b) points of a 1-pixel-per-point entry.
++    let ink = |img: &egui::ColorImage, a: usize, b: usize| {
++        (0..img.size[1]).flat_map(|y| (a..b).map(move |x| (x, y))).filter(|&(x, y)| img.pixels[y * img.size[0] + x].r() < 128).count()
++    };
++    let plain = font_entry_image(fam, None, 1.0);
++    assert_eq!(ink(&plain, 180, 244), 0, "{fam}: a short name ends well before the far end");
++    let with = font_entry_image(fam, sample, 1.0);
++    assert_eq!(with.size, [244, 22]);
++    assert!(ink(&with, 180, 244) > 20, "{fam}: the sample at the right");
++    assert!(ink(&with, 0, 30) > 20, "{fam}: the name at the left");
++    let no_hebrew = font_entry_image("Source Sans 3", sample, 1.0);
++    assert_eq!(no_hebrew.pixels, font_entry_image("Source Sans 3", None, 1.0).pixels, "no Hebrew letters, no sample");
++}
++
+ /// A window whose Styles gallery lists `style` first: runs the gallery for a few frames and
+ /// returns the painted shapes of the last one and every texture picture uploaded on the way.
+ fn run_gallery(mut doc: Document, style: wordcraft_doc::styles::Style) -> (Vec<egui::epaint::ClippedShape>, Vec<egui::ColorImage>) {
+@@ -381,3 +408,26 @@ fn font_menu_entries_take_the_theme_text_colour() {
+         assert_eq!(images, 1, "{theme:?}: the entry draws its rendered name");
+     }
+ }
++
++/// A font added again redraws its entries in every language's sample, not only the current
++/// language's: switching back to Hebrew after reinstalling a font in English doesn't show the
++/// entry drawn before the font was removed.
++#[test]
++fn a_changed_font_redraws_its_entries_in_every_language() {
++    let Some(sample) = crate::i18n::Lang::all().find_map(|l| l.font_sample()) else {
++        eprintln!("skipped: no language with a font sample embedded");
++        return;
++    };
++    let ctx = egui::Context::default();
++    let mut previews = Previews::default();
++    let keys = [entry_key("Reinstalled", None), entry_key("Reinstalled", Some(sample)), entry_key("Untouched", Some(sample))];
++    for key in &keys {
++        let tex = ctx.load_texture(key, egui::ColorImage::filled([1, 1], egui::Color32::WHITE), egui::TextureOptions::LINEAR);
++        ctx.data_mut(|d| d.insert_temp(egui::Id::unique(key), tex));
++    }
++    previews.fonts_changed(&ctx, ["Reinstalled".to_string()].into_iter());
++    let cached = |key: &String| ctx.data(|d| d.get_temp::<TextureHandle>(egui::Id::unique(key))).is_some();
++    assert!(!cached(&keys[0]), "the plain entry is redrawn");
++    assert!(!cached(&keys[1]), "the entry with another language's sample is redrawn too");
++    assert!(cached(&keys[2]), "another family's entry is kept");
++}
+diff --git a/crates/ui-egui/src/ribbon/home.rs b/crates/ui-egui/src/ribbon/home.rs
+index 1eb15a67..7440fcd5 100644
+--- a/crates/ui-egui/src/ribbon/home.rs
++++ b/crates/ui-egui/src/ribbon/home.rs
+@@ -263,14 +263,17 @@ pub(super) fn home(app: &mut WordApp, ui: &mut Ui) {
+             });
+             ui.add_space(3.0);
+             crate::widgets::row(ui, |ui| {
+-                use wordcraft_doc::Align as A;
+-                small(ui, app, "alignLeft", None, "Align Left", crate::widgets::ButtonAction::new("para.alignLeft", json!({}), align == A::Left));
+-                small(ui, app, "alignCenter", None, "Center", crate::widgets::ButtonAction::new("para.alignCenter", json!({}), align == A::Center));
+-                small(ui, app, "alignRight", None, "Align Right", crate::widgets::ButtonAction::new("para.alignRight", json!({}), align == A::Right));
+-                small(ui, app, "justify", None, "Justify", crate::widgets::ButtonAction::new("para.justify", json!({}), align == A::Justify));
++                crate::widgets::align_buttons(ui, app, align);
+                 ui.add_space(4.0);
+-                small(ui, app, "textLtr", None, "Left-to-Right Text Direction", crate::widgets::ButtonAction::new("para.ltr", json!({}), !rtl));
+-                small(ui, app, "textRtl", None, "Right-to-Left Text Direction", crate::widgets::ButtonAction::new("para.rtl", json!({}), rtl));
++                // A mirrored interface puts right-to-left first, at the right (see `align_buttons`).
++                let mut directions =
++                    [("textLtr", "Left-to-Right Text Direction", "para.ltr", !rtl), ("textRtl", "Right-to-Left Text Direction", "para.rtl", rtl)];
++                if crate::widgets::mirrored() {
++                    directions.reverse();
++                }
++                for (icon, tip, id, on) in directions {
++                    small(ui, app, icon, None, tip, crate::widgets::ButtonAction::new(id, json!({}), on));
++                }
+                 ui.add_space(4.0);
+                 menu_button(
+                     ui,
+diff --git a/crates/ui-egui/src/ribbon/table.rs b/crates/ui-egui/src/ribbon/table.rs
+index d9024600..99785bbf 100644
+--- a/crates/ui-egui/src/ribbon/table.rs
++++ b/crates/ui-egui/src/ribbon/table.rs
+@@ -293,6 +293,12 @@ pub(super) fn table_layout(app: &mut WordApp, ui: &mut Ui) {
+                 [("centerLeft", "Align Center Left"), ("center", "Align Center"), ("centerRight", "Align Center Right")],
+                 [("bottomLeft", "Align Bottom Left"), ("bottomCenter", "Align Bottom Center"), ("bottomRight", "Align Bottom Right")],
+             ] {
++                // The grid is a map of the cell: in a mirrored interface its right column stays
++                // the one that aligns right.
++                let mut row = row;
++                if crate::widgets::mirrored() {
++                    row.reverse();
++                }
+                 for (v, tip) in row {
+                     small(ui, app, "cellAlign", None, tip, crate::widgets::ButtonAction::new("table.cellAlign", json!({"value": v}), false));
+                 }
+diff --git a/crates/ui-egui/src/theme.rs b/crates/ui-egui/src/theme.rs
+index 562d12c5..bc768b47 100644
+--- a/crates/ui-egui/src/theme.rs
++++ b/crates/ui-egui/src/theme.rs
+@@ -512,10 +512,35 @@ pub fn caption_char_covered(c: char) -> bool {
+     (c as u32) < 0x250 || wordcraft_fonts::is_cjk(c)
+ }
+ 
++/// A letter the embedded interface faces draw (Inter covers Latin, Greek and Cyrillic), or CJK,
++/// which has its own interface fallback. Symbols count as covered: the catalogs share them with
++/// English, letterlike ones (the equation gallery's `xⁿ`) included. Interface text in another
++/// script (Hebrew) borrows a document face instead.
++pub fn interface_char_covered(c: char) -> bool {
++    static INTER: std::sync::OnceLock<Arc<wordcraft_fonts::FontFace>> = std::sync::OnceLock::new();
++    let symbol = !c.is_alphabetic() || ('\u{2000}'..='\u{2BFF}').contains(&c);
++    symbol || caption_char_covered(c) || INTER.get_or_init(|| wordcraft_fonts::FontDb::global().face("Inter", "Regular")).covers(c)
++}
++
+ /// Document faces needed to draw `text` (the input method's composition, or a file name in the
+ /// window caption), one for each character the interface fonts cannot draw, skipping faces in
+ /// `have` (#565). Characters of the embedded interface fonts are not looked up; very large faces
+ /// (system CJK collections) are left to the CJK fallback.
++/// Sans-serif interface faces the interface borrows first for right-to-left letters its own
++/// faces lack. The document fonts' fallback puts book faces first for Hebrew (David, Miriam, #1052),
++/// which suit a page but not menus and the ribbon; other scripts keep the document fallback.
++const INTERFACE_RTL_FACES: &[&str] = &["Segoe UI", "Noto Sans Hebrew", "Noto Sans Arabic", "Arial", "Tahoma", "DejaVu Sans"];
++
++/// The face the interface borrows for `c` ([`faces_for_preedit`]'s lookup): an installed
++/// sans-serif interface face for a right-to-left letter, else the document fonts' fallback.
++pub fn interface_fallback(c: char) -> Option<Arc<wordcraft_fonts::FontFace>> {
++    let db = wordcraft_fonts::FontDb::global();
++    let rtl = wordcraft_fonts::is_rtl(c);
++    rtl.then(|| INTERFACE_RTL_FACES.iter().filter(|f| db.has_family(f)).map(|f| db.face(f, "Regular")).find(|face| face.covers(c)))
++        .flatten()
++        .or_else(|| db.fallback_for(c, u32::MAX))
++}
++
+ pub fn faces_for_preedit(
+     text: &str,
+     have: &[Arc<wordcraft_fonts::FontFace>],
+@@ -981,6 +1006,21 @@ mod tests {
+     /// which uses the semibold face. egui paints a missing glyph as `?`, so the caption borrows
+     /// one document fallback face. CJK stays with the CJK UI font: those files are too large to
+     /// add here.
++    /// Menus and the ribbon borrow a sans-serif interface face for Hebrew letters, not the
++    /// document fallback's book face (David on Windows, #1052); other scripts keep that fallback.
++    #[test]
++    fn the_interface_borrows_a_sans_serif_face_for_hebrew() {
++        let db = wordcraft_fonts::FontDb::global();
++        let Some(want) = super::INTERFACE_RTL_FACES.iter().find(|f| db.has_family(f) && db.face(f, "Regular").covers('ש')) else {
++            eprintln!("no interface face with Hebrew letters installed: skipped");
++            return;
++        };
++        let face = super::interface_fallback('ש').expect("a face with Hebrew letters");
++        assert!(face.family.eq_ignore_ascii_case(want), "{} instead of {want}", face.family);
++        let thai = |f: Option<std::sync::Arc<wordcraft_fonts::FontFace>>| f.map(|f| f.family.clone());
++        assert_eq!(thai(super::interface_fallback('ก')), thai(db.fallback_for('ก', u32::MAX)));
++    }
++
+     #[test]
+     fn caption_borrows_one_fallback_face_for_hebrew() {
+         let face = wordcraft_fonts::FontDb::global().face("Source Sans 3", "Regular");
+diff --git a/crates/ui-egui/src/widgets.rs b/crates/ui-egui/src/widgets.rs
+index 98c10f63..fc10ae57 100644
+--- a/crates/ui-egui/src/widgets.rs
++++ b/crates/ui-egui/src/widgets.rs
+@@ -13,8 +13,8 @@ mod icon_buttons;
+ mod tooltip;
+ 
+ pub use buttons::{
+-    BIG_ICON_Y, BIG_LABEL_Y, ButtonAction, CONTENT_H, DROPDOWN, LABEL_H, LABEL_LINE_H, LABEL_PITCH, MenuButtonOptions, big, big_toggle, enabled,
+-    label_line, menu_button, menu_enabled, small, split,
++    BIG_ICON_Y, BIG_LABEL_Y, ButtonAction, CONTENT_H, DROPDOWN, LABEL_H, LABEL_LINE_H, LABEL_PITCH, MenuButtonOptions, align_buttons, big,
++    big_toggle, enabled, label_line, menu_button, menu_enabled, mirrored, small, split,
+ };
+ pub(crate) use buttons::{bg, run_from_ribbon};
+ pub(crate) use combo::swatch;
+diff --git a/crates/ui-egui/src/widgets/buttons.rs b/crates/ui-egui/src/widgets/buttons.rs
+index 1cec74ea..d09c1eb3 100644
+--- a/crates/ui-egui/src/widgets/buttons.rs
++++ b/crates/ui-egui/src/widgets/buttons.rs
+@@ -282,3 +282,27 @@ pub fn menu_button(ui: &mut Ui, app: &mut WordApp, options: MenuButtonOptions<'_
+         menu(ui, app);
+     });
+ }
++
++/// The interface is mirrored for a right-to-left language ([`crate::mirror`]).
++pub fn mirrored() -> bool {
++    crate::i18n::current().rtl()
++}
++
++/// Align Left, Center, Align Right and Justify. Their icons keep their direction in a mirrored
++/// interface, so there Align Right comes first (rightmost) and Align Left third, as right-to-left
++/// Word orders them: each button still does what its icon shows.
++pub fn align_buttons(ui: &mut Ui, app: &mut WordApp, align: wordcraft_doc::Align) {
++    use wordcraft_doc::Align as A;
++    let mut buttons = [
++        ("alignLeft", "Align Left", "para.alignLeft", A::Left),
++        ("alignCenter", "Center", "para.alignCenter", A::Center),
++        ("alignRight", "Align Right", "para.alignRight", A::Right),
++        ("justify", "Justify", "para.justify", A::Justify),
++    ];
++    if mirrored() {
++        buttons.swap(0, 2);
++    }
++    for (icon, tip, id, a) in buttons {
++        small(ui, app, icon, None, tip, ButtonAction::new(id, serde_json::json!({}), align == a));
++    }
++}
+diff --git a/crates/ui-egui/src/window_ui.rs b/crates/ui-egui/src/window_ui.rs
+index 29464e87..fd95af2a 100644
+--- a/crates/ui-egui/src/window_ui.rs
++++ b/crates/ui-egui/src/window_ui.rs
+@@ -180,6 +180,9 @@ impl WordApp {
+             fonts_system_cjk: _,
+             want_system_cjk: _,
+             recent_fonts_for: _,
++            fonts_lang: _,
++            want_language_name_fonts: _,
++            fonts_language_names: _,
+             // File › Recover lists the copies of every window's documents.
+             recover_fonts_for: _,
+             fonts_frames: _,
+diff --git a/docs/control-protocol.md b/docs/control-protocol.md
+index 25412d38..7323cfd0 100644
+--- a/docs/control-protocol.md
++++ b/docs/control-protocol.md
+@@ -54,7 +54,7 @@ and set `WORDCRAFT_CONTROL_KEY` to that app's key.
+ 
+ | Method | Params | Result |
+ |---|---|---|
+-| `engine.execute` | `command`, `params`, `doc?` | the command's result (any id from `engine.commands`, including UI commands `ui.tab`, `ui.dialog` (`{"name": dialog, "part"?: table style part}`; `part` opens New / Modify Table Style (`newTableStyle` / `modifyTableStyle`) on that part: `wholeTable`, `headerRow`, `firstColumn`, `bandedRows`, `nwCell`… as `table.modifyStyle` names them), `ui.backstage`, `ui.zotero.*` (see `docs/zotero.md`), `ui.language` (`{"value": "auto"\|"en"\|"zh-hans"\|"zh-hant"\|"ja"\|"pt-br"\|"es"\|"uk"\|"sr"\|"sr-latn"\|"et"\|"tr"\|"ru"\|"pl"\|"de"\|"it"\|"cs"\|"hu"\|"fr"}`), `ui.theme` (`{"value": "system"\|"light"\|"dark"}`; `system` follows the OS appearance, light when it reports none), `ui.interfaceSize` (`{"value": "auto"}` or `{"percent": 50–300}`, clamped; no value reads it; `auto` keeps the system display scale, a percentage is absolute, so 100 is one screen pixel per point (#822); the result's `percent` is the size drawn at and `auto` whether it follows the system; document zoom stays `view.zoom`), `ui.animations` (`{"value": "system"\|"on"\|"off"}`; no value reads it; `system` follows the system's animation setting, which the desktop app reads on Windows, macOS, Linux and the BSDs and the web app from `prefers-reduced-motion`, and means on where the system doesn't say; the result's `enabled` is what the setting comes to and `system` what the system reports, `null` when it doesn't say), `ui.fileBrowser` (desktop: `{"purpose": "document"\|"picture"\|"recipients"\|"save"}` opens WordCraft's own file browser, for when the system file dialog doesn't show up, #576), `ui.saveAsTemplate` (File › Save As › Save as Word Template: the Save dialog for a `.dotx`, starting in the user templates folder; the result's `dir` is that folder, `null` on the web, #2852), `ui.caretAnimation` (`{"value": true\|false}`; no value reads it; off, the caret jumps and blinks on and off instead of gliding and fading), `ui.startScreen` (`{"value": true\|false}`; no value reads it; on, the default, the desktop and web apps start on File › Home when launched with nothing to open, #766), `ui.alignmentGuides` (`{"value": true\|false}`; no value reads it; on, the default, moving a picture or shape snaps it to the page, the margins and other objects, with guide lines while dragging; Alt moves freely), `ui.quickAccessToolbar` (`{"value": true\|false}`; no value toggles it; false takes the Quick Access Toolbar out of the title bar, as its menu's Hide Quick Access Toolbar does, and true brings it back, #1945), `ui.focusRibbon` (`{"value": true\|false}`; no value toggles it; in Focus, true drops the ribbon down over the page, as the bar's ⋯ does, and false puts it away, as a click on the page does; outside Focus it stays put away, #1678), `ui.contextMenu` (opens the page's context menu below the caret, as Shift+F10 does), `ui.paneDock` (`{"pane": "navigation"\|"clipboard"\|"styles"\|"styleInspector"\|"accessibility"\|"altText"\|"formatShape"\|"restrictEditing"\|"comments"\|"smartArtText", "dock"?: "left"\|"right"\|"float", "before"?: pane\|null}`; no `dock` reads it; docks or floats a task pane as its menu does, kept between runs; Styles is `view.stylesPaneDock`, #1756; `before` puts the pane directly before that pane in the order, outside it on their edge, as a drop over a docked pane's outer third does, and `null` after every pane; the order is kept between runs)…) |
++| `engine.execute` | `command`, `params`, `doc?` | the command's result (any id from `engine.commands`, including UI commands `ui.tab`, `ui.dialog` (`{"name": dialog, "part"?: table style part}`; `part` opens New / Modify Table Style (`newTableStyle` / `modifyTableStyle`) on that part: `wholeTable`, `headerRow`, `firstColumn`, `bandedRows`, `nwCell`… as `table.modifyStyle` names them), `ui.backstage`, `ui.zotero.*` (see `docs/zotero.md`), `ui.language` (`{"value": "auto"\|"en"\|"zh-hans"\|"zh-hant"\|"ja"\|"pt-br"\|"es"\|"uk"\|"sr"\|"sr-latn"\|"et"\|"tr"\|"ru"\|"pl"\|"de"\|"it"\|"cs"\|"hu"\|"fr"\|"he"}`), `ui.theme` (`{"value": "system"\|"light"\|"dark"}`; `system` follows the OS appearance, light when it reports none), `ui.interfaceSize` (`{"value": "auto"}` or `{"percent": 50–300}`, clamped; no value reads it; `auto` keeps the system display scale, a percentage is absolute, so 100 is one screen pixel per point (#822); the result's `percent` is the size drawn at and `auto` whether it follows the system; document zoom stays `view.zoom`), `ui.animations` (`{"value": "system"\|"on"\|"off"}`; no value reads it; `system` follows the system's animation setting, which the desktop app reads on Windows, macOS, Linux and the BSDs and the web app from `prefers-reduced-motion`, and means on where the system doesn't say; the result's `enabled` is what the setting comes to and `system` what the system reports, `null` when it doesn't say), `ui.fileBrowser` (desktop: `{"purpose": "document"\|"picture"\|"recipients"\|"save"}` opens WordCraft's own file browser, for when the system file dialog doesn't show up, #576), `ui.saveAsTemplate` (File › Save As › Save as Word Template: the Save dialog for a `.dotx`, starting in the user templates folder; the result's `dir` is that folder, `null` on the web, #2852), `ui.caretAnimation` (`{"value": true\|false}`; no value reads it; off, the caret jumps and blinks on and off instead of gliding and fading), `ui.startScreen` (`{"value": true\|false}`; no value reads it; on, the default, the desktop and web apps start on File › Home when launched with nothing to open, #766), `ui.alignmentGuides` (`{"value": true\|false}`; no value reads it; on, the default, moving a picture or shape snaps it to the page, the margins and other objects, with guide lines while dragging; Alt moves freely), `ui.quickAccessToolbar` (`{"value": true\|false}`; no value toggles it; false takes the Quick Access Toolbar out of the title bar, as its menu's Hide Quick Access Toolbar does, and true brings it back, #1945), `ui.focusRibbon` (`{"value": true\|false}`; no value toggles it; in Focus, true drops the ribbon down over the page, as the bar's ⋯ does, and false puts it away, as a click on the page does; outside Focus it stays put away, #1678), `ui.contextMenu` (opens the page's context menu below the caret, as Shift+F10 does), `ui.paneDock` (`{"pane": "navigation"\|"clipboard"\|"styles"\|"styleInspector"\|"accessibility"\|"altText"\|"formatShape"\|"restrictEditing"\|"comments"\|"smartArtText", "dock"?: "left"\|"right"\|"float", "before"?: pane\|null}`; no `dock` reads it; docks or floats a task pane as its menu does, kept between runs; Styles is `view.stylesPaneDock`, #1756; `before` puts the pane directly before that pane in the order, outside it on their edge, as a drop over a docked pane's outer third does, and `null` after every pane; the order is kept between runs)…) |
+ | `engine.commands` | — | every command: id, label, location, shortcut, params, enabled |
+ | `document.inspect` | `text?`, `doc?` | blocks (text, style, runs, lists, tables), parts, sections, selection, pages |
+ | `ui.inspect` | — | UI state, view, dialog, window size, page rects on screen, caret, comment balloons (`balloons`: id + screen rect; `balloon`: the selected one), perf; `document`: the active document's id; `documents`: the open documents (`id`, `title`, `path`, `dirty`, `active`) |
+diff --git a/docs/localization-parity.md b/docs/localization-parity.md
+index ea71a9fe..5c469eda 100644
+--- a/docs/localization-parity.md
++++ b/docs/localization-parity.md
+@@ -22,7 +22,7 @@ native-speaker review (human).
+ ## What WordCraft ships (measured)
+ 
+ - **27 interface languages**: English plus `zh-hans`, `zh-hant`, `ja`, Korean `ko` (#1216), `uk`, `es`, `pt-br`,
+-  Serbian `sr`/`sr-latn` (#250), Estonian `et`, Turkish `tr`, Russian `ru`, Italian `it` (#594), German `de` (#574), Polish `pl`, Czech `cs`, Hungarian `hu`, French `fr`, Bulgarian `bg`, Vietnamese `vi` (#1434), Swedish `sv` (#1219), Croatian `hr` (#1271), Romanian `ro`, Slovenian `sl`, Dutch `nl` and Danish `da` (#2722). Catalogs have 2,061–2,674 entries
++  Serbian `sr`/`sr-latn` (#250), Estonian `et`, Turkish `tr`, Russian `ru`, Italian `it` (#594), German `de` (#574), Polish `pl`, Czech `cs`, Hungarian `hu`, French `fr`, Bulgarian `bg`, Vietnamese `vi` (#1434), Swedish `sv` (#1219), Croatian `hr` (#1271), Romanian `ro`, Slovenian `sl`, Dutch `nl` and Danish `da` (#2722); Hebrew `he`, with a mirrored right-to-left interface. Catalogs have 2,061–2,674 entries
+   each; Polish has every key of every other catalog, including the built-in style names and the equation gallery, except the citation style names only Hungarian, Bulgarian, Swedish, Romanian and Slovenian translate so far. A missing translation falls back to English and never fails a test or
+   build. `cargo xtask i18n-report`, part of `cargo xtask ci`, prints per language the interface
+   strings its catalog lacks: everything the interface audit saw looked up, the ribbon tabs, command
+@@ -90,6 +90,19 @@ Turkish works the same way (`tr-TR` and `tr-CY` system locales, `{"value":"tr"}`
+ entries, the same keys as the Russian catalog. Command search folds the Turkish dotted and dotless I (`italik` finds İtalik, `YAZI TİPİ`
+ finds Yazı Tipi) while English labels and ASCII command ids keep their usual matching. Turkish
+ proofing is not included; terminology and checks: [`localization-tr.md`](localization-tr.md).
++Hebrew (`he-IL` system locales, `{"value":"he"}`) is offered from craft-i18n's catalog
++(`locales/he/`, in the pinned commit). The embedded interface faces have no Hebrew letters, so a Hebrew interface (and
++the Options language list) borrows an installed sans-serif face that has them, as a Hebrew file
++name in the caption does. The egui fork lays interface text out right to left itself, so the
++catalog stays in logical order like every other. The interface is mirrored as it is painted
++(`mirror.rs`, an egui plugin): every shape of the frame flips about the window's centre and the
++pointer flips back, so the ribbon, menus, dialogs, panes and status bar run right to left; text
++moves as a block and keeps its glyphs, and icon letters keep their order (`x²`). The document
++canvas moves without flipping, the text field being edited moves with its text, caret and
++selection together. The context menu opens leftwards from its point; the selection bar, a content
++control's list and the ink replay bar stay over the page, moved with it; and floating comments
++flip with the interface, the pointer with them. Each window
++is mirrored on its own. Hebrew proofing is not included.
+ Bulgarian (`bg-BG` system locales, `{"value":"bg"}`) has 2,419 entries: every key of the reference
+ catalog, the equation gallery's labels and everything the interface audit finds. Counts use count-neutral wording (`Думи: 21`). Bulgarian text is
+ hyphenated by the Bulgarian syllable rules (#826); Bulgarian spelling and grammar are not included.
+@@ -258,6 +271,7 @@ WordCraft keeps 2,54 cm).
+ | 2026-10-12 | minor | Italian proofing: it-IT spelling from the installed Hunspell dictionary (system `it_IT`, never bundled — upstream is GPL), accent-first suggestions, conservative grammar with Italian messages, TeX Italian hyphenation patterns (MIT option); Review › Language already offered Italian; an `it` interface writes it-IT documents |
+ | 2026-10-13 | minor | Interface audit back in CI (#1128): Envelopes, Labels and Layout › Size labels go through translated patterns with the region's decimal separator (the old fixed-format paper rows, dead since #838, removed); 20 strings added to all 18 catalogs (status-bar messages, Reading Mode toolbar, Go To, Search's Suggested); citation style names and `bad parameters:` errors exempt; the Read Aloud player no longer draws a speech error before the frame has polled it, the audit's rare failure under load |
+ | 2026-10-12 | minor | Russian proofing: spelling against an installed `ru_RU` Hunspell dictionary (also KOI8-R and Windows-1251), suggestions, grammar rules with Russian messages and Russian word division |
++| 2026-10-26 | minor | Hebrew interface (`he`, catalog in craft-i18n): `he-IL` locale selection, saved preference; an installed face draws Hebrew labels; mirrored right-to-left interface per window on the egui fork's bidi layout |
+ | 2026-10-11 | minor | Turkish interface catalog completed (2,325 entries, the same keys as Russian): equation gallery, built-in style names, watermarks, paper sizes and preview tiles; the interface audit checks Turkish too (#774) |
+ | 2026-10-12 | trivial | Region conventions: File › Options › Advanced › Region (saved) and an Automatic units entry; Unix `LC_PAPER`/`LC_MEASUREMENT`/`LC_NUMERIC` each decide their own convention; the web reads the browser's locale; `WORDCRAFT_NO_PREFS` runs stay en-US; where the decimal separator comes from (#838 review) |
+ | 2026-10-12 | minor | New blank documents follow the system region: A4 outside the Letter territories, centimetres outside the US, the region's decimal separator in length fields; explicit Measurement units choice wins (#838) |
+diff --git a/docs/roadmap.md b/docs/roadmap.md
+index efa50e38..6b5e84ad 100644
+--- a/docs/roadmap.md
++++ b/docs/roadmap.md
+@@ -62,7 +62,7 @@ partial rows are fidelity gaps (beta work), not broken workflows. WordCraft stay
+ | M12 | Formats breadth (PDF, ODT, RTF, HTML, MD, TXT, LaTeX, `.doc` import) | done (first versions); `.doc` write, encryption, minor formats missing | 60–100 h |
+ | M13 | Performance budgets | on track (1.4 ms relayout); large real-world documents unmeasured | 10–20 h |
+ | M14 | 1.0 polish, packaging, signing | releases v0.1.0–v0.4.0 published (signed macOS, Windows MSI x64/x86/arm64, Linux, FreeBSD, web) | — |
+-| M15 | Localization (12 key languages, RTL interface, proofing languages) | 27 UI languages from the shared catalogs pinned by `craft-i18n.rev` (`9205108c…`); proofing: English, Polish, Portuguese, Italian, Croatian, Turkish, Russian, Czech, Indonesian and Spanish, plus Bulgarian and German hyphenation only; native-speaker review and native IME acceptance (#155–#164) remain open | 70–115 h |
++| M15 | Localization (12 key languages, RTL interface, proofing languages) | 28 UI languages from the shared catalogs pinned by `craft-i18n.rev` (`1935849…`), Hebrew with a mirrored right-to-left interface; proofing: English, Polish, Portuguese, Italian, Croatian, Turkish, Russian, Czech, Indonesian and Spanish, plus Bulgarian and German hyphenation only; native-speaker review and native IME acceptance (#155–#164) remain open | 70–115 h |
+ | M16 | Right-to-left and East Asian typography | RTL paragraphs done (#207) | 30–45 h |
+ 
+ ## Next after beta
+diff --git a/packaging/linux/flatpak/ai.storyteller.wordcraft.yml b/packaging/linux/flatpak/ai.storyteller.wordcraft.yml
+index 11337ddd..afdfaeae 100644
+--- a/packaging/linux/flatpak/ai.storyteller.wordcraft.yml
++++ b/packaging/linux/flatpak/ai.storyteller.wordcraft.yml
+@@ -125,6 +125,6 @@ modules:
+       # The interface translations at the commit in craft-i18n.rev (a test keeps the two equal).
+       - type: git
+         url: https://github.com/storytold/craft-i18n
+-        commit: 9205108cfdced5177706264038848b68b2422d2b
++        commit: 19358491340b9f33d618673de6bcd40108d9a775
+         dest: craft-i18n
+       - cargo-sources.json
