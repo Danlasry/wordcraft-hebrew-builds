@@ -14,6 +14,7 @@ function Checkout-Pinned {
     param([string]$Directory, [string]$Url, [string]$Revision)
     if (Test-Path $Directory) { throw "Use a fresh directory: $Directory" }
     Run-Native git @('init', $Directory)
+    Run-Native git @('-C', $Directory, 'config', 'core.autocrlf', 'false')
     Run-Native git @('-C', $Directory, 'remote', 'add', 'origin', $Url)
     Run-Native git @('-C', $Directory, 'fetch', '--depth', '1', 'origin', $Revision)
     Run-Native git @('-C', $Directory, 'checkout', '--detach', $Revision)
@@ -22,6 +23,9 @@ Checkout-Pinned $Source 'https://github.com/storytold/wordcraft.git' $SourceRev
 Checkout-Pinned $Catalog 'https://github.com/storytold/craft-i18n.git' $CatalogRev
 foreach ($Name in @('hebrew.patch', 'pointer-fix.patch')) {
     $Patch = Join-Path $Root "patches/$Name"
+    # Git on Windows may check out patch files with CRLF; unified diffs require LF.
+    $PatchText = [IO.File]::ReadAllText($Patch).Replace("`r`n", "`n")
+    [IO.File]::WriteAllText($Patch, $PatchText, [Text.UTF8Encoding]::new($false))
     Run-Native git @('-C', $Source, 'apply', '--check', $Patch)
     Run-Native git @('-C', $Source, 'apply', $Patch)
 }
